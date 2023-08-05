@@ -54,7 +54,6 @@ struct EventListView: View {
         let date = Date()
         let formatter = DateFormatter()
         formatter.dateFormat = "EEEE, MMMM d, yyyy"
-        let calendar = Calendar.current
         return "\(formatter.string(from: date))"
     }
     
