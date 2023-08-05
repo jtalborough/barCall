@@ -56,7 +56,7 @@ struct EventListView: View {
         return "\(formatter.string(from: date)) | Week \(weekOfYear)"
     }
 }
-
+`
 
 
 
