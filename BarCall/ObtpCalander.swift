@@ -28,9 +28,9 @@ class ObtpCalendar : ObservableObject {
 
             if abs(timeDifference) <= 10 {
                 // Prepend a bell icon if the event starts within 10 minutes
-                title = "| 🔔 " + MyEvents[0].Title + " • " + MyEvents[0].RelativeStartTime + " |"
+                title = "🔔 " + MyEvents[0].Title + " • " + MyEvents[0].RelativeStartTime
             } else {
-                title = "| " + MyEvents[0].Title + " • " + MyEvents[0].RelativeStartTime + " |"
+                title = MyEvents[0].Title + " • " + MyEvents[0].RelativeStartTime
             }
         }
         return title

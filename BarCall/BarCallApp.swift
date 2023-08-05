@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import ServiceManagement
 //import EventKit
 
 @main
@@ -15,6 +16,10 @@ struct OBTPApp: App {
     @StateObject var calendar = ObtpCalendar()
     let timeFormat = DateFormatter()
     
+    
+   // let appBundleIdentifier = "com.yourcompany.yourapp.LauncherApp" // replace with your launcher app's bundle identifier
+    //SMLoginItemSetEnabled(appBundleIdentifier as CFString, true)
+
     var body: some Scene {
         MenuBarExtra(calendar.NextEvent, content: {
             EventListView(calendar: calendar)
@@ -22,9 +27,6 @@ struct OBTPApp: App {
         .menuBarExtraStyle(.window)
     }
 }
-
-
-import SwiftUI
 
 struct EventListView: View {
     @Environment(\.openURL) var openURL
@@ -36,7 +38,10 @@ struct EventListView: View {
             Text(currentDate())
                 .font(.headline)
                 .multilineTextAlignment(.center)
-                .padding(.bottom, 10)
+            Text(currentWeek())
+                .font(.headline)
+                .multilineTextAlignment(.center)
+                .padding(.bottom, 5)
             
             ForEach(calendar.MyEvents, id: \.Uuid) { event in
                 EventRowView(event: event)
@@ -49,11 +54,17 @@ struct EventListView: View {
         let date = Date()
         let formatter = DateFormatter()
         formatter.dateFormat = "EEEE, MMMM d, yyyy"
+        let calendar = Calendar.current
+        return "\(formatter.string(from: date))"
+    }
+    
+    func currentWeek() -> String {
+        let date = Date()
         
         let calendar = Calendar.current
         let weekOfYear = calendar.component(.weekOfYear, from: date)
         
-        return "\(formatter.string(from: date)) | Week \(weekOfYear)"
+        return "Week \(weekOfYear)"
     }
 }
 
@@ -65,11 +76,13 @@ struct EventRowView: View {
     @Environment(\.openURL) var openURL
     var body: some View {
         VStack(alignment: .leading, spacing: 5) {
+           /*
             Button(action: {
                 // Open the Calendar app at today's date
                 let url = URL(string: "calshow:")!
                 openURL(url)
             }) {
+            */
                 HStack {
                     Text(event.Title)
                     Spacer()
@@ -80,7 +93,7 @@ struct EventRowView: View {
                     }
 
                 }
-            }
+            //}
             .buttonStyle(PlainButtonStyle()) // This makes the button look like regular text
             Text("\(event.StartTime) - \(event.EndTime)")
                 .font(.caption)
