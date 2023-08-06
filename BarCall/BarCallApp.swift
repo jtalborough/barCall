@@ -8,6 +8,7 @@
 import SwiftUI
 import ServiceManagement
 //import EventKit
+import LaunchAtLogin
 
 @main
 
@@ -48,7 +49,20 @@ struct EventListView: View {
             }
         }
         .padding(10)
+        .contextMenu {
+            Form {
+                LaunchAtLogin.Toggle()
+            }
+            Button(action: {
+                NSApplication.shared.terminate(self)
+            }) {
+                Text("Quit")
+                Image(systemName: "xmark.circle")
+            }
+        }
     }
+
+
     
     func currentDate() -> String {
         let date = Date()

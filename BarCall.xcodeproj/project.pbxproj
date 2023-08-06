@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		E71A9BFF2A7FB64100B86410 /* LaunchAtLogin in Frameworks */ = {isa = PBXBuildFile; productRef = E71A9BFE2A7FB64100B86410 /* LaunchAtLogin */; };
 		E759AE912A7DCB8C00C87251 /* ObtpCalander.swift in Sources */ = {isa = PBXBuildFile; fileRef = E759AE902A7DCB8C00C87251 /* ObtpCalander.swift */; };
 		E7CA06312A7A700E00A9A9F7 /* BarCallApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = E7CA06302A7A700E00A9A9F7 /* BarCallApp.swift */; };
 		E7CA06332A7A700E00A9A9F7 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E7CA06322A7A700E00A9A9F7 /* ContentView.swift */; };
@@ -55,6 +56,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				E71A9BFF2A7FB64100B86410 /* LaunchAtLogin in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -150,6 +152,9 @@
 			dependencies = (
 			);
 			name = BarCall;
+			packageProductDependencies = (
+				E71A9BFE2A7FB64100B86410 /* LaunchAtLogin */,
+			);
 			productName = BarCall;
 			productReference = E7CA062D2A7A700E00A9A9F7 /* BarCall.app */;
 			productType = "com.apple.product-type.application";
@@ -222,6 +227,9 @@
 				Base,
 			);
 			mainGroup = E7CA06242A7A700E00A9A9F7;
+			packageReferences = (
+				E71A9BFD2A7FB64100B86410 /* XCRemoteSwiftPackageReference "LaunchAtLogin-Modern" */,
+			);
 			productRefGroup = E7CA062E2A7A700E00A9A9F7 /* Products */;
 			projectDirPath = "";
 			projectRoot = "";
@@ -438,6 +446,7 @@
 				INFOPLIST_FILE = BarCall/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = "";
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.productivity";
+				INFOPLIST_KEY_LSUIElement = YES;
 				INFOPLIST_KEY_NSCalendarsUsageDescription = "Please grant access to the calendars";
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -470,6 +479,7 @@
 				INFOPLIST_FILE = BarCall/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = "";
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.productivity";
+				INFOPLIST_KEY_LSUIElement = YES;
 				INFOPLIST_KEY_NSCalendarsUsageDescription = "Please grant access to the calendars";
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -593,6 +603,25 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		E71A9BFD2A7FB64100B86410 /* XCRemoteSwiftPackageReference "LaunchAtLogin-Modern" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/sindresorhus/LaunchAtLogin-Modern";
+			requirement = {
+				branch = main;
+				kind = branch;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		E71A9BFE2A7FB64100B86410 /* LaunchAtLogin */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = E71A9BFD2A7FB64100B86410 /* XCRemoteSwiftPackageReference "LaunchAtLogin-Modern" */;
+			productName = LaunchAtLogin;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = E7CA06252A7A700E00A9A9F7 /* Project object */;
 }
