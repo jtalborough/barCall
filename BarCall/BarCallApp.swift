@@ -49,7 +49,9 @@ struct EventListView: View {
             }
         }
         .padding(10)
-        .contextMenu {
+        Divider()
+        Menu("Settings") {
+
             Form {
                 LaunchAtLogin.Toggle()
             }
@@ -59,7 +61,12 @@ struct EventListView: View {
                 Text("Quit")
                 Image(systemName: "xmark.circle")
             }
+
         }
+            .menuStyle(BorderlessButtonMenuStyle())
+            .padding(10)
+        
+       
     }
 
 
