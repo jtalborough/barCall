@@ -49,6 +49,7 @@ struct EventListView: View {
             }
         }
         .padding(10)
+        //.border(Color.white).padding(5)
         Divider()
         Menu("Settings") {
 
@@ -65,9 +66,11 @@ struct EventListView: View {
         }
             .menuStyle(BorderlessButtonMenuStyle())
             .padding(10)
+            
         
        
     }
+        
 
 
     
