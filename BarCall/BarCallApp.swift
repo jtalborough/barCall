@@ -26,6 +26,8 @@ struct OBTPApp: App {
             EventListView(calendar: calendar)
         })
         .menuBarExtraStyle(.window)
+
+
     }
 }
 
@@ -52,7 +54,6 @@ struct EventListView: View {
         //.border(Color.white).padding(5)
         Divider()
         Menu("Settings") {
-
             Form {
                 LaunchAtLogin.Toggle()
             }
@@ -66,6 +67,7 @@ struct EventListView: View {
         }
             .menuStyle(BorderlessButtonMenuStyle())
             .padding(10)
+
             
         
        
@@ -112,7 +114,8 @@ struct EventRowView: View {
                     if let url = event.Url {
                         Button("Join") { openURL(url) }
                             .buttonStyle(.borderedProminent)
-                            .tint(Color.green)
+                            .tint(Color.yellow).colorMultiply(.yellow)
+                            .preferredColorScheme(.dark)
                     }
 
                 }
