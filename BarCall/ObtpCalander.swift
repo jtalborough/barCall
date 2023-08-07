@@ -48,15 +48,35 @@ class ObtpCalendar : ObservableObject {
         MyEvents.removeAll()
         for tempevent in sortedEvents {
             if tempevent.endDate.timeIntervalSinceNow > 0 && !tempevent.isAllDay {
+                
+                /*
                 // Ask for the full relative date
                 let formatter = RelativeDateTimeFormatter()
                 formatter.unitsStyle = .full
                 formatter.dateTimeStyle = .named
 
                 // Get tempevent.startDate relative to the current date
+                
                 let relativeDate = formatter.localizedString(for: tempevent.startDate, relativeTo: Date())
 
                 let newEvent = Events(title: tempevent.title, startTime: relativeDate, event: tempevent)
+                */
+                let currentDate = Date()
+                let eventDate = tempevent.startDate!
+
+                // Calculate the difference between the two dates
+                let calendar = Calendar.current
+                let components = calendar.dateComponents([.hour, .minute], from: currentDate, to: eventDate)
+
+                // Format the difference using DateComponentsFormatter
+                let formatter = DateComponentsFormatter()
+                formatter.allowedUnits = [.hour, .minute]
+                formatter.unitsStyle = .full
+                formatter.maximumUnitCount = 2 // Display at most 2 units (e.g., 1 hour, 45 minutes)
+                let relativeDate = formatter.string(from: components) ?? ""
+
+                let newEvent = Events(title: tempevent.title, startTime: "in \(relativeDate)", event: tempevent)
+                
                 let location = tempevent.location
 
                 if location != nil && location!.contains("http") {
