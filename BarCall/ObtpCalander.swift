@@ -126,14 +126,12 @@ class ObtpCalendar : ObservableObject {
     }
     
     func extractTeamsURL(from text: String) -> String? {
-        let pattern = "<(https://teams\\.microsoft\\.com/l/meetup-join/[^\n]+)>"
+        let pattern = "<(https://teams\\.microsoft\\.com/l/meetup-join/[^>]+)>"
         let regex = try? NSRegularExpression(pattern: pattern, options: .caseInsensitive)
         let range = NSRange(location: 0, length: text.utf16.count)
-        if let match = regex?.firstMatch(in: text, options: [], range: range) {
-            let urlRange = match.range(at: 1)
-            let startIndex = text.index(text.startIndex, offsetBy: urlRange.location)
-            let endIndex = text.index(startIndex, offsetBy: urlRange.length)
-            let url = String(text[startIndex..<endIndex])
+        if let match = regex?.firstMatch(in: text, options: [], range: range),
+           let urlRange = Range(match.range(at: 1), in: text) {
+            let url = String(text[urlRange])
             return url
         }
         return nil
