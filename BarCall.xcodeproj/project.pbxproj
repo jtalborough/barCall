@@ -100,10 +100,10 @@
 		E7CA062F2A7A700E00A9A9F7 /* BarCall */ = {
 			isa = PBXGroup;
 			children = (
-				E759AE902A7DCB8C00C87251 /* ObtpCalander.swift */,
-				E7CA065D2A7A73CE00A9A9F7 /* Info.plist */,
 				E7CA06302A7A700E00A9A9F7 /* BarCallApp.swift */,
 				E7CA06322A7A700E00A9A9F7 /* ContentView.swift */,
+				E759AE902A7DCB8C00C87251 /* ObtpCalander.swift */,
+				E7CA065D2A7A73CE00A9A9F7 /* Info.plist */,
 				E7CA06342A7A701300A9A9F7 /* Assets.xcassets */,
 				E7CA06392A7A701300A9A9F7 /* BarCall.entitlements */,
 				E7CA06362A7A701300A9A9F7 /* Preview Content */,

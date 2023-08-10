@@ -95,7 +95,6 @@ struct EventListView: View {
 
 
 
-
 struct EventRowView: View {
     let event: Events
     @Environment(\.openURL) var openURL

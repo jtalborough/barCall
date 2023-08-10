@@ -131,7 +131,7 @@ class ObtpCalendar : ObservableObject {
         let range = NSRange(location: 0, length: text.utf16.count)
         if let match = regex?.firstMatch(in: text, options: [], range: range) {
             let urlRange = match.range(at: 1)
-            let startIndex = text.index(text.startIndex, offsetBy: urlRange.location - 4)
+            let startIndex = text.index(text.startIndex, offsetBy: urlRange.location)
             let endIndex = text.index(startIndex, offsetBy: urlRange.length)
             let url = String(text[startIndex..<endIndex])
             return url
