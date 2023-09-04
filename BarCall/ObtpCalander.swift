@@ -23,18 +23,30 @@ class ObtpCalendar : ObservableObject {
             title = "No more events for today"
         } else {
             let now = Date()
-            let eventStartTime = MyEvents[0].Event.startDate
-            let timeDifference = Calendar.current.dateComponents([.minute], from: now, to: eventStartTime!).minute ?? 0
+            let currentEvent = MyEvents.first { event in
+                let eventStartTime = event.Event.startDate
+                let timeDifference = Calendar.current.dateComponents([.minute], from: now, to: eventStartTime!).minute ?? 0
+                return timeDifference <= 0
+            }
 
-            if timeDifference <= 10 {
-                // Prepend a bell icon if the event starts within 10 minutes
-                title = "🔔 " + MyEvents[0].Title + " • " + MyEvents[0].RelativeStartTime
+            if let upcomingEvent = MyEvents.first(where: { $0 != currentEvent }) {
+                let eventStartTime = upcomingEvent.Event.startDate
+                let timeDifference = Calendar.current.dateComponents([.minute], from: now, to: eventStartTime!).minute ?? 0
+
+                if timeDifference <= 10 {
+                    // Prepend a bell icon if the event starts within 10 minutes
+                    title = "🔔 " + upcomingEvent.Title + " • " + upcomingEvent.RelativeStartTime
+                } else {
+                    title = upcomingEvent.Title + " • " + upcomingEvent.RelativeStartTime
+                }
             } else {
-                title = MyEvents[0].Title + " • " + MyEvents[0].RelativeStartTime
+                title = currentEvent?.Title ?? "No more events for today"
             }
         }
         return title
     }
+
+
 
     func getEvents() {
         // Create a predicate
@@ -173,9 +185,11 @@ class ObtpCalendar : ObservableObject {
         
 }
 
-class Events : ObservableObject
-{
-    
+class Events: ObservableObject, Equatable {
+    static func == (lhs: Events, rhs: Events) -> Bool {
+        return lhs.Uuid == rhs.Uuid
+    }
+    x`
     init(title: String, startTime: String, event: EKEvent){
         Title = title
         RelativeStartTime = startTime
