@@ -189,7 +189,7 @@ class Events: ObservableObject, Equatable {
     static func == (lhs: Events, rhs: Events) -> Bool {
         return lhs.Uuid == rhs.Uuid
     }
-    x`
+
     init(title: String, startTime: String, event: EKEvent){
         Title = title
         RelativeStartTime = startTime
