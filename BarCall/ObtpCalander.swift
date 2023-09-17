@@ -60,22 +60,6 @@ class ObtpCalendar : ObservableObject {
         MyEvents.removeAll()
         for tempevent in sortedEvents {
             if tempevent.endDate.timeIntervalSinceNow > 0 && !tempevent.isAllDay {
-
-                /*
-                let currentDate = Date()
-                let eventDate = tempevent.startDate!
-
-                // Calculate the difference between the two dates
-                let calendar = Calendar.current
-                let components = calendar.dateComponents([.hour, .minute], from: currentDate, to: eventDate)
-
-                // Format the difference using DateComponentsFormatter
-                let formatter = DateComponentsFormatter()
-                formatter.allowedUnits = [.hour, .minute]
-                formatter.unitsStyle = .full
-                formatter.maximumUnitCount = 2 // Display at most 2 units (e.g., 1 hour, 45 minutes)
-                let relativeDate = formatter.string(from: components) ?? ""
-                */
                 
                 let newEvent = Events(title: tempevent.title, startTime: formatRelativeTime(to: tempevent.startDate), event: tempevent)
                 
@@ -85,7 +69,7 @@ class ObtpCalendar : ObservableObject {
                     newEvent.Url = URL(string: location!)
                 }
                 else {
-                    newEvent.Url = URL(string: extractTeamsURL(from: tempevent.notes ?? "") ?? "")
+                    newEvent.Url = URL(string: extractMeetingURL(from: tempevent.notes ?? "") ?? "")
                 }
 
                 MyEvents.append(newEvent)
@@ -137,17 +121,18 @@ class ObtpCalendar : ObservableObject {
         return ""
     }
     
-    func extractTeamsURL(from text: String) -> String? {
-        let pattern = "<(https://teams\\.microsoft\\.com/l/meetup-join/[^>]+)>"
+    func extractMeetingURL(from text: String) -> String? {
+        let pattern = "(https://(?:teams\\.microsoft\\.com|zoom\\.us|meet\\.google\\.com)/[^\\s]+)"
         let regex = try? NSRegularExpression(pattern: pattern, options: .caseInsensitive)
         let range = NSRange(location: 0, length: text.utf16.count)
         if let match = regex?.firstMatch(in: text, options: [], range: range),
-           let urlRange = Range(match.range(at: 1), in: text) {
+           let urlRange = Range(match.range(at: 0), in: text) {
             let url = String(text[urlRange])
             return url
         }
         return nil
     }
+
     
     func checkCalendarAuthorizationStatus() {
         if #available(macOS 14, *)
