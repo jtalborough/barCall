@@ -59,21 +59,37 @@ class ObtpCalendar : ObservableObject {
 
         MyEvents.removeAll()
         for tempevent in sortedEvents {
+            
             if tempevent.endDate.timeIntervalSinceNow > 0 && !tempevent.isAllDay {
+                
+                print("Debug: tempEvent.title = \(String(describing: tempevent.title))")
                 
                 let newEvent = Events(title: tempevent.title, startTime: formatRelativeTime(to: tempevent.startDate), event: tempevent)
                 
                 let location = tempevent.location
+                print("Debug: location = \(String(describing: tempevent.location))") //
 
-                if location != nil && location!.contains("http") {
-                    newEvent.Url = URL(string: location!)
+                if let location = location, location.contains("http") {
+                    if let httpIndex = location.range(of: "http")?.lowerBound {
+                        let substringFromHttp = String(location[httpIndex...])
+                        if let endIndex = substringFromHttp.rangeOfCharacter(from: CharacterSet(charactersIn: " ;\n"))?.lowerBound {
+                            let firstUrl = String(substringFromHttp[..<endIndex])
+                            newEvent.Url = URL(string: firstUrl)
+                        } else {
+                            newEvent.Url = URL(string: substringFromHttp)
+                        }
+                    }
+                }  else {
+                    // print("Debug: tempEvent.notes = \(String(describing: tempevent.notes))") // Debugging line
+                    let extractedURL = extractMeetingURL(from: tempevent.notes ?? "") ?? ""
+                    print("Debug: extractedURL = \(extractedURL)") // Debugging line
+                    newEvent.Url = URL(string: extractedURL)
                 }
-                else {
-                    newEvent.Url = URL(string: extractMeetingURL(from: tempevent.notes ?? "") ?? "")
-                }
+
+                print("Debug: extractedURL = \(String(describing: newEvent.Url))") //
 
                 MyEvents.append(newEvent)
-                //print(tempevent.title!, "at", relativeDate)
+
             }
         }
         NextEvent = getNextEventTitle()
@@ -122,11 +138,11 @@ class ObtpCalendar : ObservableObject {
     }
     
     func extractMeetingURL(from text: String) -> String? {
-        let pattern = "(https://(?:teams\\.microsoft\\.com|zoom\\.us|meet\\.google\\.com)/[^\\s]+)"
+        let pattern = "(https://(?:teams\\.microsoft\\.com|zoom\\.us|meet\\.google\\.com)/[^\\s>]+)"
         let regex = try? NSRegularExpression(pattern: pattern, options: .caseInsensitive)
         let range = NSRange(location: 0, length: text.utf16.count)
         if let match = regex?.firstMatch(in: text, options: [], range: range),
-           let urlRange = Range(match.range(at: 0), in: text) {
+           let urlRange = Range(match.range(at: 1), in: text) {
             let url = String(text[urlRange])
             return url
         }
