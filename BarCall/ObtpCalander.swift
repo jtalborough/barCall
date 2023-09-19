@@ -19,32 +19,41 @@ class ObtpCalendar : ObservableObject {
 
     func getNextEventTitle() -> String {
         var title: String
-        if MyEvents.isEmpty {
-            title = "No more events for today"
-        } else {
-            let now = Date()
-            let currentEvent = MyEvents.first { event in
-                let eventStartTime = event.Event.startDate
-                let timeDifference = Calendar.current.dateComponents([.minute], from: now, to: eventStartTime!).minute ?? 0
-                return timeDifference <= 0
-            }
+        let now = Date()
 
-            if let upcomingEvent = MyEvents.first(where: { $0 != currentEvent }) {
-                let eventStartTime = upcomingEvent.Event.startDate
-                let timeDifference = Calendar.current.dateComponents([.minute], from: now, to: eventStartTime!).minute ?? 0
-
-                if timeDifference <= 10 {
-                    // Prepend a bell icon if the event starts within 10 minutes
-                    title = "🔔 " + upcomingEvent.Title + " • " + upcomingEvent.RelativeStartTime
-                } else {
-                    title = upcomingEvent.Title + " • " + upcomingEvent.RelativeStartTime
-                }
-            } else {
-                title = currentEvent?.Title ?? "No more events for today"
-            }
+        // Find the current event, if any
+        let currentEvent = MyEvents.first { event in
+            let eventStartTime = event.Event.startDate!
+            let eventEndTime = event.Event.endDate!
+            return now >= eventStartTime && now <= eventEndTime
         }
+
+        // Find the next event, if any
+        let nextEvent = MyEvents.first { event in
+            return event.Event.startDate! > now
+        }
+
+        // Calculate time difference for the next event
+        let nextEventTimeDifference = nextEvent != nil ? Calendar.current.dateComponents([.minute], from: now, to: nextEvent!.Event.startDate!).minute ?? 0 : nil
+
+        if let currentEvent = currentEvent {
+            title = currentEvent.Title
+
+            // Check if there's a next event starting within 10 minutes
+            if let nextEvent = nextEvent, nextEventTimeDifference! <= 10 {
+                title = "🔔 " + nextEvent.Title + " • " + nextEvent.RelativeStartTime
+            }
+        } else if let nextEvent = nextEvent {
+            // Prepend a bell icon if the next event starts within 10 minutes
+            title = nextEventTimeDifference! <= 10 ? "🔔 " : ""
+            title += nextEvent.Title + " • " + nextEvent.RelativeStartTime
+        } else {
+            title = "No more events for today"
+        }
+
         return title
     }
+
 
 
 
