@@ -147,7 +147,7 @@ class ObtpCalendar : ObservableObject {
     }
     
     func extractMeetingURL(from text: String) -> String? {
-        let pattern = "(https://(?:teams\\.microsoft\\.com|zoom\\.us|meet\\.google\\.com)/[^\\s>]+)"
+        let pattern = "(https://(?:teams\\.microsoft\\.com|zoom\\.us|meet\\.google\\.com|goto\\.webex\\.com)/[^\\s>]+)"
         let regex = try? NSRegularExpression(pattern: pattern, options: .caseInsensitive)
         let range = NSRange(location: 0, length: text.utf16.count)
         if let match = regex?.firstMatch(in: text, options: [], range: range),
