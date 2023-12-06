@@ -9,6 +9,8 @@ class ObtpCalendar : ObservableObject {
         timer = Timer.scheduledTimer(withTimeInterval: 10.0, repeats: true) { timer in
             self.getEvents()
         }
+        loadCalendarSelections()
+        
     }
     var timer = Timer()
     let eventCalander = EKEventStore()
@@ -16,7 +18,18 @@ class ObtpCalendar : ObservableObject {
     @Published var NextEvent: String = ""
     @Published var tryList = [Events]()
     @Published var active: Bool = true
-
+    @Published var availableCalendars: [String: Bool] = [:] {
+        didSet {
+            saveCalendarSelections()
+        }
+    }
+    
+    private func loadCalendarSelections() {
+        if let savedSelections = UserDefaults.standard.dictionary(forKey: "calendarSelections") as? [String: Bool] {
+            availableCalendars = savedSelections
+        }
+    }
+    
     func getNextEventTitle() -> String {
         var title: String
         let now = Date()
@@ -60,7 +73,14 @@ class ObtpCalendar : ObservableObject {
     func getEvents() {
         // Create a predicate
         guard let interval = Calendar.current.dateInterval(of: .day, for: Date()) else { return }
-        let predicate = eventCalander.predicateForEvents(withStart: interval.start, end: interval.end, calendars: nil)
+       
+        let allCalendars = eventCalander.calendars(for: .event)
+        // Filter out the enabled calendars based on their titles
+        let enabledCalendars = allCalendars.filter { calendar in
+            self.availableCalendars[calendar.title] ?? false
+        }
+        
+        let predicate = eventCalander.predicateForEvents(withStart: interval.start, end: interval.end, calendars: enabledCalendars)
 
         // Fetch the events
         let events = eventCalander.events(matching: predicate)
@@ -191,8 +211,15 @@ class ObtpCalendar : ObservableObject {
             }
             
         }
+        // Fetch available calendars and update availableCalendars
+        let calendars = eventCalander.calendars(for: .event)
+        for calendar in calendars {
+            availableCalendars[calendar.title] = true // Initially setting all calendars as enabled
+        }
     }
-        
+    private func saveCalendarSelections() {
+        UserDefaults.standard.set(availableCalendars, forKey: "calendarSelections")
+    }
 }
 
 class Events: ObservableObject, Equatable {

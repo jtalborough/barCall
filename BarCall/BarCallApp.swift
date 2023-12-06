@@ -16,10 +16,7 @@ import LaunchAtLogin
 struct OBTPApp: App {
     @StateObject var calendar = ObtpCalendar()
     let timeFormat = DateFormatter()
-    
-    
-   // let appBundleIdentifier = "com.yourcompany.yourapp.LauncherApp" // replace with your launcher app's bundle identifier
-    //SMLoginItemSetEnabled(appBundleIdentifier as CFString, true)
+
 
     var body: some Scene {
         MenuBarExtra(calendar.NextEvent, content: {
@@ -31,9 +28,12 @@ struct OBTPApp: App {
     }
 }
 
+
+
 struct EventListView: View {
     @Environment(\.openURL) var openURL
     @ObservedObject var calendar: ObtpCalendar
+    @State private var showingSettings = false
     
     var body: some View {
         VStack(spacing: 5) {
@@ -49,6 +49,7 @@ struct EventListView: View {
             ForEach(calendar.MyEvents, id: \.Uuid) { event in
                 EventRowView(event: event)
             }
+
         }
         .padding(10)
         //.border(Color.white).padding(5)
@@ -63,11 +64,26 @@ struct EventListView: View {
                 Text("Quit")
                 Image(systemName: "xmark.circle")
             }
-
+            Divider()
+            if !calendar.availableCalendars.isEmpty {
+                            Text("Calendars")
+                                .font(.headline)
+                            ForEach(calendar.availableCalendars.keys.sorted(), id: \.self) { calendarName in
+                                Toggle(isOn: Binding(
+                                    get: { self.calendar.availableCalendars[calendarName, default: false] },
+                                    set: { self.calendar.availableCalendars[calendarName] = $0 }
+                                )) {
+                                    Text(calendarName)
+                                }
+                            }
+                        }
+ 
         }
             .menuStyle(BorderlessButtonMenuStyle())
             .padding(10)
-
+//            .popover(isPresented: $showingSettings) {
+//                SettingsView(calendar: calendar, isPresented: $showingSettings)
+//            }
             
         
        
