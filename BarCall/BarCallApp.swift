@@ -15,6 +15,7 @@ import LaunchAtLogin
 
 struct OBTPApp: App {
     @StateObject var calendar = ObtpCalendar()
+    
     let timeFormat = DateFormatter()
 
 
@@ -81,12 +82,6 @@ struct EventListView: View {
         }
             .menuStyle(BorderlessButtonMenuStyle())
             .padding(10)
-//            .popover(isPresented: $showingSettings) {
-//                SettingsView(calendar: calendar, isPresented: $showingSettings)
-//            }
-            
-        
-       
     }
         
 

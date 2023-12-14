@@ -10,10 +10,10 @@ class ObtpCalendar : ObservableObject {
             self.getEvents()
         }
         loadCalendarSelections()
-        
     }
+    
     var timer = Timer()
-    let eventCalander = EKEventStore()
+    let eventCalendar = EKEventStore()
     @Published var MyEvents = [Events]()
     @Published var NextEvent: String = ""
     @Published var tryList = [Events]()
@@ -25,10 +25,25 @@ class ObtpCalendar : ObservableObject {
     }
     
     private func loadCalendarSelections() {
+        // Fetch available calendars from UserDefaults and update availableCalendars
+        var savedCalendars = [String: Bool]()
         if let savedSelections = UserDefaults.standard.dictionary(forKey: "calendarSelections") as? [String: Bool] {
-            availableCalendars = savedSelections
+            savedCalendars = savedSelections
         }
+
+        // Fetch all calendars from the event calendar
+        let newCalendars = eventCalendar.calendars(for: .event)
+        for calendar in newCalendars {
+            // Add the new calendar to savedCalendars if it's not already present
+            if savedCalendars[calendar.title] == nil {
+                savedCalendars[calendar.title] = true
+            }
+        }
+
+        // Update the availableCalendars with the merged data
+        availableCalendars = savedCalendars
     }
+
     
     func getNextEventTitle() -> String {
         var title: String
@@ -74,16 +89,16 @@ class ObtpCalendar : ObservableObject {
         // Create a predicate
         guard let interval = Calendar.current.dateInterval(of: .day, for: Date()) else { return }
        
-        let allCalendars = eventCalander.calendars(for: .event)
+        let allCalendars = eventCalendar.calendars(for: .event)
         // Filter out the enabled calendars based on their titles
         let enabledCalendars = allCalendars.filter { calendar in
             self.availableCalendars[calendar.title] ?? false
         }
         
-        let predicate = eventCalander.predicateForEvents(withStart: interval.start, end: interval.end, calendars: enabledCalendars)
+        let predicate = eventCalendar.predicateForEvents(withStart: interval.start, end: interval.end, calendars: enabledCalendars)
 
         // Fetch the events
-        let events = eventCalander.events(matching: predicate)
+        let events = eventCalendar.events(matching: predicate)
         let sortedEvents = events.sorted { a, b in a.startDate < b.startDate }
 
         MyEvents.removeAll()
@@ -184,12 +199,12 @@ class ObtpCalendar : ObservableObject {
         {
             if(EKEventStore.authorizationStatus(for: EKEntityType.event) != EKAuthorizationStatus.fullAccess)
             {
-                eventCalander.requestFullAccessToEvents(completion: )
+                eventCalendar.requestFullAccessToEvents(completion: )
                 {
                     granted, error in
                     if (granted)
                     {
-                        self.eventCalander.reset()
+                        self.eventCalendar.reset()
                         self.getEvents()
                     }
                 }
@@ -199,22 +214,17 @@ class ObtpCalendar : ObservableObject {
         {
             if(EKEventStore.authorizationStatus(for: EKEntityType.event) != EKAuthorizationStatus.authorized)
             {
-                eventCalander.requestAccess(to: .event)
+                eventCalendar.requestAccess(to: .event)
                 {
                     granted, error in
                     if (granted)
                     {
-                        self.eventCalander.reset()
+                        self.eventCalendar.reset()
                         self.getEvents()
                     }
                 }
             }
             
-        }
-        // Fetch available calendars and update availableCalendars
-        let calendars = eventCalander.calendars(for: .event)
-        for calendar in calendars {
-            availableCalendars[calendar.title] = true // Initially setting all calendars as enabled
         }
     }
     private func saveCalendarSelections() {
