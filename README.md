@@ -1,9 +1,5 @@
 # BarCall
 
-[Projects](https://www.notion.so/Projects-3f07363791b0497c895b40c0cec1d3f8?pvs=21)
-
-[The Stream](https://www.notion.so/ac8c01add3904a62823ecb559307afac?pvs=21)
-
 ### **BarCall: Your Meeting Command Center**
 
 **Elevate Your Meetings to the Mac Menu Bar** 
