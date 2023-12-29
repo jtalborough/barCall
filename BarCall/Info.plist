@@ -5,6 +5,6 @@
 	<key>ITSAppUsesNonExemptEncryption</key>
 	<false/>
 	<key>NSCalendarsFullAccessUsageDescription</key>
-	<string>Please grant access to the calendars</string>
+	<string>Access to calendars is required to display meetings in the menu bar and enable the Join button. </string>
 </dict>
 </plist>
