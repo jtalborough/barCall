@@ -54,6 +54,23 @@ struct EventListView: View {
         }
         .padding(10)
         //.border(Color.white).padding(5)
+        Menu("Availability") {
+            Button("Today") {
+                let availability = calendar.getAvailability(for: .today)
+                NSPasteboard.general.clearContents()
+                NSPasteboard.general.setString(availability, forType: .string)
+            }
+            Button("Next 3 Days") {
+                let availability = calendar.getAvailability(for: .nextThreeDays)
+                NSPasteboard.general.clearContents()
+                NSPasteboard.general.setString(availability, forType: .string)
+            }
+            Button("Next 5 Days") {
+                let availability = calendar.getAvailability(for: .nextFiveDays)
+                NSPasteboard.general.clearContents()
+                NSPasteboard.general.setString(availability, forType: .string)
+            }
+        }
         Divider()
         Menu("Settings") {
             Form {

@@ -230,6 +230,183 @@ class ObtpCalendar : ObservableObject {
     private func saveCalendarSelections() {
         UserDefaults.standard.set(availableCalendars, forKey: "calendarSelections")
     }
+    enum AvailabilityOption {
+        case today
+        case nextThreeDays
+        case nextFiveDays
+    }
+
+    func getAvailability(for option: AvailabilityOption) -> String {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "EEEE, MMMM d, yyyy"
+
+        var availability = ""
+        let currentDate = Date()
+
+        switch option {
+        case .today:
+            availability = "# Availability for Today\n\n"
+            availability += "## \(formatter.string(from: currentDate))\n\n"
+            let events = getEventsForAvailability(for: 1)
+            availability += generateAvailabilityMarkdown(from: events)
+        case .nextThreeDays:
+            availability = "# Availability for the Next 3 Days\n\n"
+            let events = getEventsForAvailability(for: 3)
+            availability += generateAvailabilityMarkdown(from: events)
+        case .nextFiveDays:
+            availability = "# Availability for the Next 5 Days\n\n"
+            let events = getEventsForAvailability(for: 5)
+            availability += generateAvailabilityMarkdown(from: events)
+        }
+
+        return availability
+    }
+
+    private func generateAvailabilityMarkdown(from events: [Events]) -> String {
+        var markdown = ""
+        
+        if events.isEmpty {
+            markdown += "- No events scheduled\n"
+        } else {
+            let groupedEvents = Dictionary(grouping: events, by: { Calendar.current.startOfDay(for: $0.Event.startDate) })
+            let sortedDates = groupedEvents.keys.sorted()
+            
+            for date in sortedDates {
+                let formatter = DateFormatter()
+                formatter.dateFormat = "EEEE, MMMM d, yyyy"
+                markdown += "## \(formatter.string(from: date))\n\n"
+                
+                markdown += "### Events\n\n"
+                for event in groupedEvents[date]! {
+                    markdown += "- \(event.StartTime) - \(event.EndTime): \(event.Title)\n"
+                }
+                
+                markdown += "\n"
+                
+                markdown += "### Available Time Slots\n\n"
+                let availableSlots = getAvailableTimeSlots(for: date, events: groupedEvents[date]!)
+                if availableSlots.isEmpty {
+                    markdown += "- No available time slots\n"
+                } else {
+                    for slot in availableSlots {
+                        markdown += "- \(slot.startTime) - \(slot.endTime)\n"
+                    }
+                }
+                
+                markdown += "\n"
+            }
+        }
+        
+        return markdown
+    }
+
+    private func getAvailableTimeSlots(for date: Date, events: [Events]) -> [(startTime: String, endTime: String)] {
+        let calendar = Calendar.current
+        let startOfDay = calendar.startOfDay(for: date)
+        
+        let businessHoursStart = calendar.date(bySettingHour: 8, minute: 0, second: 0, of: startOfDay)!
+        let businessHoursEnd = calendar.date(bySettingHour: 18, minute: 0, second: 0, of: startOfDay)!
+        
+        let sortedEvents = events.sorted { $0.Event.startDate < $1.Event.startDate }
+        
+        var availableSlots: [(startTime: String, endTime: String)] = []
+        var currentTime = businessHoursStart
+        
+        let timeFormatter = DateFormatter()
+        timeFormatter.dateFormat = "h:mm a"
+        
+        for event in sortedEvents {
+            if let eventStart = event.Event.startDate, let eventEnd = event.Event.endDate {
+                if eventStart >= currentTime && eventStart >= businessHoursStart && eventEnd <= businessHoursEnd {
+                    let duration = eventStart.timeIntervalSince(currentTime)
+                    if duration >= 15 * 60 {
+                        let slotStart = timeFormatter.string(from: currentTime)
+                        let slotEnd = timeFormatter.string(from: eventStart)
+                        availableSlots.append((startTime: slotStart, endTime: slotEnd))
+                    }
+                    currentTime = eventEnd
+                } else if eventEnd > currentTime {
+                    currentTime = eventEnd
+                }
+            }
+        }
+        
+        if currentTime < businessHoursEnd {
+            let duration = businessHoursEnd.timeIntervalSince(currentTime)
+            if duration >= 15 * 60 {
+                let slotStart = timeFormatter.string(from: currentTime)
+                let slotEnd = timeFormatter.string(from: businessHoursEnd)
+                availableSlots.append((startTime: slotStart, endTime: slotEnd))
+            }
+        }
+        
+        return availableSlots
+    }
+    
+    func getEventsForAvailability(for days: Int) -> [Events] {
+        let currentDate = Date()
+        let calendar = Calendar.current
+        
+        var events = [Events]()
+        
+        for i in 0..<days {
+            guard let interval = calendar.dateInterval(of: .day, for: calendar.date(byAdding: .day, value: i, to: currentDate)!) else { continue }
+            
+            let allCalendars = eventCalendar.calendars(for: .event)
+            let enabledCalendars = allCalendars.filter { calendar in
+                self.availableCalendars[calendar.title] ?? false
+            }
+            
+            let predicate = eventCalendar.predicateForEvents(withStart: interval.start, end: interval.end, calendars: enabledCalendars)
+            let eventsForDay = eventCalendar.events(matching: predicate)
+            let sortedEvents = eventsForDay.sorted { $0.startDate < $1.startDate }
+            
+            for tempEvent in sortedEvents {
+                if tempEvent.endDate.timeIntervalSinceNow > 0 && !tempEvent.isAllDay {
+                    let newEvent = Events(title: tempEvent.title, startTime: formatRelativeTime(to: tempEvent.startDate), event: tempEvent)
+                    
+                    if let location = tempEvent.location, location.contains("http"),
+                       let httpIndex = location.range(of: "http")?.lowerBound {
+                        let substringFromHttp = String(location[httpIndex...])
+                        if let endIndex = substringFromHttp.rangeOfCharacter(from: CharacterSet(charactersIn: " ;\n"))?.lowerBound {
+                            let firstUrl = String(substringFromHttp[..<endIndex])
+                            newEvent.Url = URL(string: firstUrl)
+                        } else {
+                            newEvent.Url = URL(string: substringFromHttp)
+                        }
+                    } else if let extractedURL = extractMeetingURL(from: tempEvent.notes ?? "") {
+                        newEvent.Url = URL(string: extractedURL)
+                    }
+                    
+                    events.append(newEvent)
+                }
+            }
+        }
+        
+        return events
+    }
+    private func eventsForDate(_ date: Date) -> [Events] {
+        let calendar = Calendar.current
+        let startOfDay = calendar.startOfDay(for: date)
+        let endOfDay = calendar.date(byAdding: .day, value: 1, to: startOfDay)!
+
+        print("Date: \(date)")
+        print("Start of Day: \(startOfDay)")
+        print("End of Day: \(endOfDay)")
+
+        let filteredEvents = MyEvents.filter { event in
+            if let eventStartDate = event.Event.startDate {
+                print("Event: \(event.Title), Start Date: \(eventStartDate)")
+                return eventStartDate >= startOfDay && eventStartDate < endOfDay
+            } else {
+                return false
+            }
+        }
+
+        print("Filtered Events: \(filteredEvents)")
+
+        return filteredEvents
+    }
 }
 
 class Events: ObservableObject, Equatable {
