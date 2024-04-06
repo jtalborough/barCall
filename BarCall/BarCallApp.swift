@@ -70,7 +70,8 @@ struct EventListView: View {
                 NSPasteboard.general.clearContents()
                 NSPasteboard.general.setString(availability, forType: .string)
             }
-        }
+        }.menuStyle(BorderlessButtonMenuStyle())
+            .padding(10)
         Divider()
         Menu("Settings") {
             Form {
