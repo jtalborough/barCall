@@ -271,19 +271,14 @@ class ObtpCalendar : ObservableObject {
             let groupedEvents = Dictionary(grouping: events, by: { Calendar.current.startOfDay(for: $0.Event.startDate) })
             let sortedDates = groupedEvents.keys.sorted()
             
+            let timeZone = TimeZone.current
+            let timeZoneName = timeZone.localizedName(for: .generic, locale: .current) ?? ""
+            
             for date in sortedDates {
                 let formatter = DateFormatter()
                 formatter.dateFormat = "EEEE, MMMM d, yyyy"
-                markdown += "## \(formatter.string(from: date))\n\n"
+                markdown += "## \(formatter.string(from: date)) (\(timeZoneName))\n\n"
                 
-                markdown += "### Events\n\n"
-                for event in groupedEvents[date]! {
-                    markdown += "- \(event.StartTime) - \(event.EndTime): \(event.Title)\n"
-                }
-                
-                markdown += "\n"
-                
-                markdown += "### Available Time Slots\n\n"
                 let availableSlots = getAvailableTimeSlots(for: date, events: groupedEvents[date]!)
                 if availableSlots.isEmpty {
                     markdown += "- No available time slots\n"
