@@ -12,6 +12,7 @@ struct SettingsView: View {
     @ObservedObject var calendar: ObtpCalendar
     @Binding var joinButtonColor: Color
     @Environment(\.presentationMode) var presentationMode
+    @State private var showColorPicker = false // Add this state variable
     
     let predefinedColors: [Color] = [.yellow, .blue, .green, .purple]
     
@@ -33,17 +34,9 @@ struct SettingsView: View {
             Form {
                 Section(header: Text("General")) {
                     LaunchAtLogin.Toggle()
-                    Button(action: {
-                        
-                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-                            NSApplication.shared.terminate(nil)
-                        }
-                    }) {
-                        Text("Quit")
-                        Image(systemName: "xmark.circle")
-                    }
+                    
                 }
-                
+                Divider()
                 Section(header: Text("Join Button Color")) {
                     HStack {
                         ForEach(predefinedColors, id: \.self) { color in
@@ -51,21 +44,22 @@ struct SettingsView: View {
                                 joinButtonColor = color
                                 saveJoinButtonColor(color)
                             }) {
-                                Rectangle()
-                                    .fill(color)
-                                    .frame(width: 30, height: 15)
-                            }
+                                Color.clear
+                            } .frame(width:40)
+                            
+                                .background(color)
+                                .cornerRadius(2)
                         }
                         
                         ColorPicker("", selection: $joinButtonColor)
                             .labelsHidden()
-                            .frame(width: 30, height: 30)
+                            //.frame(width: 30, height: 30)
                             .onChange(of: joinButtonColor) { newColor in
                                 saveJoinButtonColor(newColor)
                             }
                     }
                 }
-                
+                Divider()
                 if !calendar.availableCalendars.isEmpty {
                     Section(header: Text("Calendars")) {
                         ScrollView {
@@ -89,6 +83,6 @@ struct SettingsView: View {
     }
     
     private func saveJoinButtonColor(_ color: Color) {
-        UserDefaults.standard.set(color., forKey: "JoinButtonColor")
+        UserDefaults.standard.set(color.toHex(), forKey: "JoinButtonColor")
     }
 }

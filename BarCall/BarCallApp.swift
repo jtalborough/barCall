@@ -20,11 +20,11 @@ struct OBTPApp: App {
     @State private var joinButtonColor: Color = .yellow
 
     init() {
-        if let colorHex = UserDefaults.standard.value(forKey: "JoinButtonColor") as? Color. {
-            _joinButtonColor = State(initialValue: colorHex )
+        if let colorHex = UserDefaults.standard.string(forKey: "JoinButtonColor") {
+            _joinButtonColor = State(initialValue: Color(hex: colorHex) ?? .yellow)
         }
     }
-
+        
     var body: some Scene {
         MenuBarExtra(calendar.NextEvent, content: {
             EventListView(calendar: calendar, joinButtonColor: $joinButtonColor)
@@ -95,10 +95,23 @@ struct EventListView: View {
         }
 
         // Your other content here
-        Spacer()
 
-
-
+        HStack {
+            Button(action: {
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+                    NSApplication.shared.terminate(nil)
+                }
+            }) {
+                HStack {
+                    Image(systemName: "xmark.circle")
+                    Text("Quit")
+                }
+                .padding(8)
+            }
+            .buttonStyle(PlainButtonStyle())
+            
+            Spacer()
+        }
     }
         
 
@@ -151,3 +164,49 @@ struct EventRowView: View {
 
 
 
+extension Color {
+    func toHex() -> String? {
+        guard let rgbColor = NSColor(self).usingColorSpace(.sRGB) else {
+            return nil
+        }
+        
+        let red = Int(round(rgbColor.redComponent * 255))
+        let green = Int(round(rgbColor.greenComponent * 255))
+        let blue = Int(round(rgbColor.blueComponent * 255))
+        
+        let hexString = String(format: "%02X%02X%02X", red, green, blue)
+        return hexString
+    }
+}
+extension Color {
+    init?(hex: String) {
+        var hexSanitized = hex.trimmingCharacters(in: .whitespacesAndNewlines)
+        hexSanitized = hexSanitized.replacingOccurrences(of: "#", with: "")
+        
+        var rgb: UInt64 = 0
+        
+        var r: CGFloat = 0.0
+        var g: CGFloat = 0.0
+        var b: CGFloat = 0.0
+        var a: CGFloat = 1.0
+        
+        let length = hexSanitized.count
+        
+        guard Scanner(string: hexSanitized).scanHexInt64(&rgb) else { return nil }
+        
+        if length == 6 {
+            r = CGFloat((rgb & 0xFF0000) >> 16) / 255.0
+            g = CGFloat((rgb & 0x00FF00) >> 8) / 255.0
+            b = CGFloat(rgb & 0x0000FF) / 255.0
+        } else if length == 8 {
+            r = CGFloat((rgb & 0xFF000000) >> 24) / 255.0
+            g = CGFloat((rgb & 0x00FF0000) >> 16) / 255.0
+            b = CGFloat((rgb & 0x0000FF00) >> 8) / 255.0
+            a = CGFloat(rgb & 0x000000FF) / 255.0
+        } else {
+            return nil
+        }
+        
+        self.init(red: r, green: g, blue: b, opacity: a)
+    }
+}
