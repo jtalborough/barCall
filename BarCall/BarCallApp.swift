@@ -26,11 +26,14 @@ struct OBTPApp: App {
             _joinButtonColor = State(initialValue: Color(hex: colorHex) ?? .yellow)
         }
         self.showDate = UserDefaults.standard.bool(forKey: "ShowDate")
+        
     }
         
     var body: some Scene {
-        MenuBarExtra(showDate ? formattedDate() : calendar.NextEvent, content: {
+        MenuBarExtra(content: {
             EventListView(calendar: calendar, joinButtonColor: $joinButtonColor, showDate: $showDate)
+        }, label: {
+            MenuBarItemView(showDate: showDate, formattedDate: formattedDate(), nextEvent: calendar.NextEvent)
         })
         .menuBarExtraStyle(.window)
         
@@ -47,7 +50,24 @@ struct OBTPApp: App {
     }
 }
 
-
+struct MenuBarItemView: View {
+    let showDate: Bool
+    let formattedDate: String
+    let nextEvent: String
+    
+    var body: some View {
+        HStack {
+            Image(systemName: "calendar")
+                .foregroundColor(.blue)
+            
+            if showDate {
+                Text("(\(formattedDate))")
+            } else {
+                Text(nextEvent)
+            }
+        }
+    }
+}
 
 struct EventListView: View {
     @Environment(\.openURL) var openURL
