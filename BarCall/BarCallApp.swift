@@ -17,15 +17,19 @@ struct OBTPApp: App {
     @StateObject var calendar = ObtpCalendar()
     
     let timeFormat = DateFormatter()
+    @State private var joinButtonColor: Color = .yellow
 
+    init() {
+        if let colorHex = UserDefaults.standard.value(forKey: "JoinButtonColor") as? Color. {
+            _joinButtonColor = State(initialValue: colorHex )
+        }
+    }
 
     var body: some Scene {
         MenuBarExtra(calendar.NextEvent, content: {
-            EventListView(calendar: calendar)
+            EventListView(calendar: calendar, joinButtonColor: $joinButtonColor)
         })
         .menuBarExtraStyle(.window)
-
-
     }
 }
 
@@ -34,7 +38,9 @@ struct OBTPApp: App {
 struct EventListView: View {
     @Environment(\.openURL) var openURL
     @ObservedObject var calendar: ObtpCalendar
+    @Binding var joinButtonColor: Color
     @State private var showingSettings = false
+    @State private var dismissSettings = false
     
     var body: some View {
         VStack(spacing: 5) {
@@ -48,9 +54,9 @@ struct EventListView: View {
                 .padding(.bottom, 5)
             
             ForEach(calendar.MyEvents, id: \.Uuid) { event in
-                EventRowView(event: event)
+                EventRowView(event: event, joinButtonColor: $joinButtonColor)
             }
-
+            
         }
         .padding(10)
         //.border(Color.white).padding(5)
@@ -72,34 +78,27 @@ struct EventListView: View {
             }
         }.menuStyle(BorderlessButtonMenuStyle())
             .padding(10)
+        
         Divider()
-        Menu("Settings") {
-            Form {
-                LaunchAtLogin.Toggle()
+        
+        HStack {
+            Button("Settings") {
+                showingSettings = true
             }
-            Button(action: {
-                NSApplication.shared.terminate(self)
-            }) {
-                Text("Quit")
-                Image(systemName: "xmark.circle")
-            }
-            Divider()
-            if !calendar.availableCalendars.isEmpty {
-                            Text("Calendars")
-                                .font(.headline)
-                            ForEach(calendar.availableCalendars.keys.sorted(), id: \.self) { calendarName in
-                                Toggle(isOn: Binding(
-                                    get: { self.calendar.availableCalendars[calendarName, default: false] },
-                                    set: { self.calendar.availableCalendars[calendarName] = $0 }
-                                )) {
-                                    Text(calendarName)
-                                }
-                            }
-                        }
- 
-        }
-            .menuStyle(BorderlessButtonMenuStyle())
+            .buttonStyle(PlainButtonStyle()) // Text-only button style
+            //.foregroundColor(.blue) // Optional: Change text color
             .padding(10)
+            .popover(isPresented: $showingSettings) {
+                SettingsView(calendar: calendar, joinButtonColor: $joinButtonColor)
+            }
+            Spacer() // Pushes the button to the left
+        }
+
+        // Your other content here
+        Spacer()
+
+
+
     }
         
 
@@ -126,36 +125,27 @@ struct EventListView: View {
 
 struct EventRowView: View {
     let event: Events
+    @Binding var joinButtonColor: Color
     @Environment(\.openURL) var openURL
+    
     var body: some View {
         VStack(alignment: .leading, spacing: 5) {
-           /*
-            Button(action: {
-                // Open the Calendar app at today's date
-                let url = URL(string: "calshow:")!
-                openURL(url)
-            }) {
-            */
-                HStack {
-                    Text(event.Title)
-                    Spacer()
-                    if let url = event.Url {
-                        Button("Join") { openURL(url) }
-                            .buttonStyle(.borderedProminent)
-                            .tint(Color.yellow).colorMultiply(.yellow)
-                            .preferredColorScheme(.dark)
-                    }
-
+            // ...
+            
+            HStack {
+                Text(event.Title)
+                Spacer()
+                if let url = event.Url {
+                    Button("Join") { openURL(url) }
+                        .buttonStyle(.borderedProminent)
+                        .tint(joinButtonColor)
+                        .preferredColorScheme(.dark)
                 }
-            //}
-            .buttonStyle(PlainButtonStyle()) // This makes the button look like regular text
-            Text("\(event.StartTime) - \(event.EndTime)")
-                .font(.caption)
+            }
+            
+            // ...
         }
-        .padding(10)
-        .background(Color.secondary.opacity(0.1)) // Optional: Add a background color to each row
-        .cornerRadius(5) // Optional: Add corner radius to the row
-        .padding(.vertical, 5) // Optional: Adjust vertical padding between rows
+        // ...
     }
 }
 

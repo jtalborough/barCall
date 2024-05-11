@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		6B7989412BEF882C00630CB0 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6B7989402BEF882C00630CB0 /* SettingsView.swift */; };
 		E71A9BFF2A7FB64100B86410 /* LaunchAtLogin in Frameworks */ = {isa = PBXBuildFile; productRef = E71A9BFE2A7FB64100B86410 /* LaunchAtLogin */; };
 		E759AE912A7DCB8C00C87251 /* ObtpCalander.swift in Sources */ = {isa = PBXBuildFile; fileRef = E759AE902A7DCB8C00C87251 /* ObtpCalander.swift */; };
 		E7CA06312A7A700E00A9A9F7 /* BarCallApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = E7CA06302A7A700E00A9A9F7 /* BarCallApp.swift */; };
@@ -36,6 +37,7 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		6B7989402BEF882C00630CB0 /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
 		E759AE902A7DCB8C00C87251 /* ObtpCalander.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ObtpCalander.swift; sourceTree = "<group>"; };
 		E7CA062D2A7A700E00A9A9F7 /* BarCall.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = BarCall.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		E7CA06302A7A700E00A9A9F7 /* BarCallApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BarCallApp.swift; sourceTree = "<group>"; };
@@ -107,6 +109,7 @@
 				E7CA06342A7A701300A9A9F7 /* Assets.xcassets */,
 				E7CA06392A7A701300A9A9F7 /* BarCall.entitlements */,
 				E7CA06362A7A701300A9A9F7 /* Preview Content */,
+				6B7989402BEF882C00630CB0 /* SettingsView.swift */,
 			);
 			path = BarCall;
 			sourceTree = "<group>";
@@ -273,6 +276,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				E7CA06332A7A700E00A9A9F7 /* ContentView.swift in Sources */,
+				6B7989412BEF882C00630CB0 /* SettingsView.swift in Sources */,
 				E759AE912A7DCB8C00C87251 /* ObtpCalander.swift in Sources */,
 				E7CA06312A7A700E00A9A9F7 /* BarCallApp.swift in Sources */,
 			);
@@ -457,7 +461,7 @@
 					"@executable_path/../Frameworks",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 13.0;
-				MARKETING_VERSION = 1.1;
+				MARKETING_VERSION = 1.2;
 				PRODUCT_BUNDLE_IDENTIFIER = JTA.BarCall;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
@@ -491,7 +495,7 @@
 					"@executable_path/../Frameworks",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 13.0;
-				MARKETING_VERSION = 1.1;
+				MARKETING_VERSION = 1.2;
 				PRODUCT_BUNDLE_IDENTIFIER = JTA.BarCall;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
