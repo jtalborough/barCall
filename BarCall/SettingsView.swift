@@ -13,6 +13,7 @@ struct SettingsView: View {
     @Binding var joinButtonColor: Color
     @Environment(\.presentationMode) var presentationMode
     @State private var showColorPicker = false // Add this state variable
+    @Binding var showDate: Bool // Add this binding
     
     let predefinedColors: [Color] = [.yellow, .blue, .green, .purple]
     
@@ -36,6 +37,10 @@ struct SettingsView: View {
                     LaunchAtLogin.Toggle()
                     
                 }
+                Toggle("Show Date", isOn: $showDate)
+                    .onChange(of: showDate) { value in
+                        UserDefaults.standard.set(value, forKey: "ShowDate")
+                    }
                 Divider()
                 Section(header: Text("Join Button Color")) {
                     HStack {

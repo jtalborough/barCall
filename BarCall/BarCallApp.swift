@@ -18,18 +18,32 @@ struct OBTPApp: App {
     
     let timeFormat = DateFormatter()
     @State private var joinButtonColor: Color = .yellow
-
+    //@State private var showDate = false
+    @State private var showDate: Bool = UserDefaults.standard.bool(forKey: "ShowDate")
+   
     init() {
         if let colorHex = UserDefaults.standard.string(forKey: "JoinButtonColor") {
             _joinButtonColor = State(initialValue: Color(hex: colorHex) ?? .yellow)
         }
+        self.showDate = UserDefaults.standard.bool(forKey: "ShowDate")
     }
         
     var body: some Scene {
-        MenuBarExtra(calendar.NextEvent, content: {
-            EventListView(calendar: calendar, joinButtonColor: $joinButtonColor)
+        MenuBarExtra(showDate ? formattedDate() : calendar.NextEvent, content: {
+            EventListView(calendar: calendar, joinButtonColor: $joinButtonColor, showDate: $showDate)
         })
         .menuBarExtraStyle(.window)
+        
+        Settings {
+            SettingsView(calendar: calendar, joinButtonColor: $joinButtonColor, showDate: $showDate)
+        }
+    }
+    
+    func formattedDate() -> String {
+        let dateFormatter = DateFormatter()
+        dateFormatter.dateFormat = "d"
+        let dateString = dateFormatter.string(from: Date())
+        return "\(calendar.NextEvent) (\(dateString))"
     }
 }
 
@@ -41,6 +55,7 @@ struct EventListView: View {
     @Binding var joinButtonColor: Color
     @State private var showingSettings = false
     @State private var dismissSettings = false
+    @Binding var showDate: Bool
     
     var body: some View {
         VStack(spacing: 5) {
@@ -89,7 +104,7 @@ struct EventListView: View {
             //.foregroundColor(.blue) // Optional: Change text color
             .padding(10)
             .popover(isPresented: $showingSettings) {
-                SettingsView(calendar: calendar, joinButtonColor: $joinButtonColor)
+                SettingsView(calendar: calendar, joinButtonColor: $joinButtonColor,  showDate: $showDate)
             }
             Spacer() // Pushes the button to the left
         }
