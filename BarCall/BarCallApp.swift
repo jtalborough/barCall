@@ -10,55 +10,33 @@ import ServiceManagement
 //import EventKit
 import LaunchAtLogin
 
+
+
+
 @main
-
-
 struct OBTPApp: App {
-    @StateObject var calendar = ObtpCalendar()
+    @NSApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
     
-    let timeFormat = DateFormatter()
-    @State private var joinButtonColor: Color = .yellow
-    //@State private var showDate = false
-    @State private var showDate: Bool = UserDefaults.standard.bool(forKey: "ShowDate")
-   
-    init() {
-        if let colorHex = UserDefaults.standard.string(forKey: "JoinButtonColor") {
-            _joinButtonColor = State(initialValue: Color(hex: colorHex) ?? .yellow)
-        }
-        self.showDate = UserDefaults.standard.bool(forKey: "ShowDate")
-        
-    }
-        
     var body: some Scene {
-        MenuBarExtra(content: {
-            EventListView(calendar: calendar, joinButtonColor: $joinButtonColor, showDate: $showDate)
-        }, label: {
-            MenuBarItemView(showDate: showDate, formattedDate: formattedDate(), nextEvent: calendar.NextEvent)
-        })
-        .menuBarExtraStyle(.window)
-        
         Settings {
-            SettingsView(calendar: calendar, joinButtonColor: $joinButtonColor, showDate: $showDate)
+            SettingsView(calendar: appDelegate.calendar, joinButtonColor: .constant(appDelegate.joinButtonColor), showDate: .constant(appDelegate.showDate))
         }
-    }
-    
-    func formattedDate() -> String {
-        let dateFormatter = DateFormatter()
-        dateFormatter.dateFormat = "d"
-        let dateString = dateFormatter.string(from: Date())
-        return "\(calendar.NextEvent) (\(dateString))"
     }
 }
+
+
 
 struct MenuBarItemView: View {
     let showDate: Bool
     let formattedDate: String
     let nextEvent: String
+    @Binding var isPopoverVisible: Bool
     
     var body: some View {
         HStack {
-            Image(systemName: "calendar")
+            Image("11.test")
                 .foregroundColor(.blue)
+                .font(.largeTitle)
             
             if showDate {
                 Text("(\(formattedDate))")
@@ -66,8 +44,16 @@ struct MenuBarItemView: View {
                 Text(nextEvent)
             }
         }
+        .padding(4)
+        .onTapGesture {
+            isPopoverVisible.toggle()
+        }
+        .popover(isPresented: $isPopoverVisible) {
+            EventListView(calendar: ObtpCalendar(), joinButtonColor: .constant(.yellow), showDate: .constant(false))
+        }
     }
 }
+
 
 struct EventListView: View {
     @Environment(\.openURL) var openURL
@@ -245,3 +231,4 @@ extension Color {
         self.init(red: r, green: g, blue: b, opacity: a)
     }
 }
+
