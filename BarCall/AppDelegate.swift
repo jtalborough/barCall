@@ -104,7 +104,17 @@ class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject {
         
         let dayNumber = Calendar.current.component(.day, from: Date())
         let symbolName = "\(dayNumber).square"
-        let symbolConfiguration = NSImage.SymbolConfiguration(pointSize: 32, weight: .regular)
+        
+        // Get the thickness of the menu bar
+        let menuBarThickness = NSStatusBar.system.thickness
+        
+        // Get the backing scale factor of the screen where the menu bar is located
+        let screenBackingScaleFactor = button.window?.screen?.backingScaleFactor ?? 1
+        
+        // Calculate the point size based on the menu bar thickness and screen scale factor
+        let symbolPointSize = menuBarThickness * 0.5 * screenBackingScaleFactor
+        
+        let symbolConfiguration = NSImage.SymbolConfiguration(pointSize: symbolPointSize, weight: .regular)
         let iconImage = NSImage(systemSymbolName: symbolName, accessibilityDescription: "Calendar")?.withSymbolConfiguration(symbolConfiguration)
         button.image = iconImage
         
