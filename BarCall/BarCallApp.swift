@@ -26,43 +26,72 @@ struct OBTPApp: App {
 
 
 
-struct MenuBarItemView: View {
-    let showDate: Bool
-    let formattedDate: String
-    let nextEvent: String
-    @Binding var isPopoverVisible: Bool
-    
-    var body: some View {
-        HStack {
-            Image("11.test")
-                .foregroundColor(.blue)
-                .font(.largeTitle)
-            
-            if showDate {
-                Text("(\(formattedDate))")
-            } else {
-                Text(nextEvent)
-            }
-        }
-        .padding(4)
-        .onTapGesture {
-            isPopoverVisible.toggle()
-        }
-        .popover(isPresented: $isPopoverVisible) {
-            EventListView(calendar: ObtpCalendar(), joinButtonColor: .constant(.yellow), showDate: .constant(false))
-        }
-    }
-}
+//struct EventListView: View {
+//    @Environment(\.openURL) var openURL
+//    @ObservedObject var calendar: ObtpCalendar
+//    @Binding var joinButtonColor: Color
+//    @Binding var showDate: Bool
+//    @ObservedObject var appDelegate: AppDelegate
+//    @State private var isPopoverVisible = false // Add this line
+//
+//    @State private var showingSettings = false
+//    @State private var dismissSettings = false
+//    
+//    init(calendar: ObtpCalendar, joinButtonColor: Binding<Color>, showDate: Binding<Bool>, appDelegate: AppDelegate) {
+//        self.calendar = calendar
+//        self._joinButtonColor = joinButtonColor
+//        self._showDate = showDate
+//        self.appDelegate = appDelegate
+//    }
+//    var formattedDate: String {
+//        let dateFormatter = DateFormatter()
+//        dateFormatter.dateFormat = "MM/dd/yyyy"
+//        return dateFormatter.string(from: Date())
+//    }
+//    
+//    var body: some View {
+//        HStack {
+//            Image("11.test")
+//                .foregroundColor(.blue)
+//                .font(.largeTitle)
+//            
+//            if showDate {
+//                Text("(\(formattedDate))")
+//            } else {
+//                Text(calendar.NextEvent)
+//            }
+//        }
+//        .padding(4)
+//        .onTapGesture {
+//             isPopoverVisible.toggle()
+//        }
+//        .popover(isPresented: $isPopoverVisible) {
+//            EventListView(
+//                calendar: ObtpCalendar(),
+//                joinButtonColor: $appDelegate.joinButtonColor,
+//                showDate: $appDelegate.showDate,
+//                appDelegate: appDelegate
+//            )
+//        }
+//    }
+//}
 
 
 struct EventListView: View {
     @Environment(\.openURL) var openURL
     @ObservedObject var calendar: ObtpCalendar
+    @ObservedObject var appDelegate: AppDelegate
     @Binding var joinButtonColor: Color
     @State private var showingSettings = false
     @State private var dismissSettings = false
     @Binding var showDate: Bool
-    
+
+    init(calendar: ObtpCalendar, joinButtonColor: Binding<Color>, showDate: Binding<Bool>, appDelegate: AppDelegate) {
+            self.calendar = calendar
+            self._joinButtonColor = joinButtonColor
+            self._showDate = showDate
+            self.appDelegate = appDelegate
+        }
     var body: some View {
         VStack(spacing: 5) {
             // Display current date
@@ -75,7 +104,7 @@ struct EventListView: View {
                 .padding(.bottom, 5)
             
             ForEach(calendar.MyEvents, id: \.Uuid) { event in
-                EventRowView(event: event, joinButtonColor: $joinButtonColor)
+                EventRowView(event: event, joinButtonColor: $appDelegate.joinButtonColor)
             }
             
         }

@@ -9,12 +9,26 @@ import SwiftUI
 import ServiceManagement
 import LaunchAtLogin
 
-class AppDelegate: NSObject, NSApplicationDelegate {
+class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject {
     var popover: NSPopover!
     var statusBarItem: NSStatusItem!
     var calendar = ObtpCalendar()
-    var joinButtonColor: Color = .yellow
-    var showDate: Bool = UserDefaults.standard.bool(forKey: "ShowDate")
+    @Published var joinButtonColor: Color = .yellow
+    @Published var showDate: Bool = UserDefaults.standard.bool(forKey: "ShowDate")
+   
+    var joinButtonColorBinding: Binding<Color> {
+        Binding(
+            get: { self.joinButtonColor },
+            set: { self.joinButtonColor = $0 }
+        )
+    }
+    
+    var showDateBinding: Binding<Bool> {
+        Binding(
+            get: { self.showDate },
+            set: { self.showDate = $0 }
+        )
+    }
     
     func applicationDidFinishLaunching(_ notification: Notification) {
         if let colorHex = UserDefaults.standard.string(forKey: "JoinButtonColor") {
@@ -30,7 +44,12 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         popover.contentSize = NSSize(width: 300, height: 400)
         popover.behavior = .transient
         
-        let contentView = EventListView(calendar: calendar, joinButtonColor: .constant(joinButtonColor), showDate: .constant(showDate))
+        let contentView = EventListView(
+            calendar: calendar,
+            joinButtonColor: joinButtonColorBinding, // Pass the joinButtonColor binding
+            showDate: showDateBinding, // Pass the showDate binding
+            appDelegate: self
+        )
         popover.contentViewController = NSHostingController(rootView: contentView)
         
         statusBarItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.variableLength)
@@ -50,6 +69,13 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             if popover.isShown {
                 popover.performClose(sender)
             } else {
+                let contentView = EventListView(
+                    calendar: calendar,
+                    joinButtonColor: joinButtonColorBinding, // Pass the joinButtonColor binding
+                    showDate: showDateBinding, // Pass the showDate binding
+                    appDelegate: self
+                )
+                popover.contentViewController = NSHostingController(rootView: contentView)
                 popover.show(relativeTo: button.bounds, of: button, preferredEdge: .minY)
             }
         }
