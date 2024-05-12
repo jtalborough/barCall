@@ -152,7 +152,6 @@ struct EventRowView: View {
                     Button("Join") { openURL(url) }
                         .buttonStyle(.borderedProminent)
                         .tint(joinButtonColor)
-                    //.preferredColorScheme(.dark)
                 }
             }
         }

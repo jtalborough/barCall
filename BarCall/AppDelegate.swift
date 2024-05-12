@@ -115,8 +115,24 @@ class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject {
         let symbolPointSize = menuBarThickness * 0.5 * screenBackingScaleFactor
         
         let symbolConfiguration = NSImage.SymbolConfiguration(pointSize: symbolPointSize, weight: .regular)
-        let iconImage = NSImage(systemSymbolName: symbolName, accessibilityDescription: "Calendar")?.withSymbolConfiguration(symbolConfiguration)
-        button.image = iconImage
+        symbolConfiguration.applying(.preferringMulticolor())
+        symbolConfiguration.applying(.init(hierarchicalColor: .red))
+        // Check if the next event is within 10 minutes
+        let isNextEventWithin10Minutes = calendar.MyEvents.first?.Event.startDate?.timeIntervalSinceNow ?? Double.infinity <= 600
+        
+        let iconImage = NSImage(systemSymbolName: symbolName, accessibilityDescription: "Calendar")?
+            .withSymbolConfiguration(symbolConfiguration)
+        
+        
+        if isNextEventWithin10Minutes {
+            
+            button.image = iconImage?.tint(color: .red)
+            
+        }
+        else
+        {
+            button.image = iconImage
+        }
         
         if showDate {
             let dateFormatter = DateFormatter()
@@ -128,8 +144,8 @@ class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject {
             button.title = calendar.NextEvent
             button.imagePosition = .noImage
         }
+        
     }
-    
     @objc func togglePopover(_ sender: AnyObject?) {
         if let button = statusBarItem.button {
             if popover.isShown {
@@ -151,5 +167,15 @@ class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject {
 class CustomStatusBarButton: NSStatusBarButton {
     override func highlight(_ flag: Bool) {
         // Do nothing to prevent highlighting
+    }
+}
+extension NSImage {
+    func tint(color: NSColor) -> NSImage {
+        NSImage(size: size, flipped: false) { rect in
+            color.set()
+            rect.fill()
+            self.draw(in: rect, from: NSRect(origin: .zero, size: self.size), operation: .destinationIn, fraction: 1.0)
+            return true
+        }
     }
 }
