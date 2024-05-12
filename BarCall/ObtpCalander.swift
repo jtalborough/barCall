@@ -10,7 +10,7 @@ class ObtpCalendar : ObservableObject {
             self.getEvents()
         }
         loadCalendarSelections()
-         
+        self.getEvents()
     }
     
     var timer = Timer()
@@ -18,7 +18,7 @@ class ObtpCalendar : ObservableObject {
     @Published var MyEvents = [Events]()
     @Published var NextEvent: String = ""
     @Published var tryList = [Events]()
-    @Published var active: Bool = true
+    @Published var active: Bool = false
     @Published var availableCalendars: [String: Bool] = [:] {
         didSet {
             saveCalendarSelections()
@@ -67,17 +67,21 @@ class ObtpCalendar : ObservableObject {
 
         if let currentEvent = currentEvent {
             title = currentEvent.Title
-
+            active = false
             // Check if there's a next event starting within 10 minutes
             if let nextEvent = nextEvent, nextEventTimeDifference! <= 10 {
                 title = "🔔 " + nextEvent.Title + " • " + nextEvent.RelativeStartTime
+                active = true;
             }
         } else if let nextEvent = nextEvent {
             // Prepend a bell icon if the next event starts within 10 minutes
             title = nextEventTimeDifference! <= 10 ? "🔔 " : ""
             title += nextEvent.Title + " • " + nextEvent.RelativeStartTime
+            active = true
         } else {
             title = "No more events for today"
+            active = false
+
         }
 
         return title

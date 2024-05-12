@@ -18,6 +18,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject {
 
     @Published var joinButtonColor: Color = .yellow
     @Published var showDate: Bool = UserDefaults.standard.bool(forKey: "ShowDate")
+
    
     var joinButtonColorBinding: Binding<Color> {
         Binding(
@@ -37,10 +38,17 @@ class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject {
         if let colorHex = UserDefaults.standard.string(forKey: "JoinButtonColor") {
             joinButtonColor = Color(hex: colorHex) ?? .yellow
         }
+        // Set default value for "ShowDate" key if it doesn't exist
+        UserDefaults.standard.register(defaults: ["ShowDate": true])
+        
+        // Read the value of "ShowDate" from user defaults
         showDate = UserDefaults.standard.bool(forKey: "ShowDate")
         
-        setupMenuBarItem()
         
+        setupMenuBarItem()
+
+        
+
         calendar.objectWillChange
                     .receive(on: RunLoop.main)
                     .sink { _ in
@@ -83,21 +91,13 @@ class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject {
             button.imagePosition = .imageLeft
             
             // Disable button highlighting
-            button.highlight(false)
+            //button.highlight(false)
             
             updateStatusBarIcon()
         }
     }
     
-    func pulseStatusBarIcon() {
-        guard let button = statusBarItem.button else { return }
-        
-        let animation = CAKeyframeAnimation(keyPath: "opacity")
-        animation.values = [1.0, 0.5, 1.0]
-        animation.keyTimes = [0.0, 0.5, 1.0]
-        animation.duration = 0.7
-        button.layer?.add(animation, forKey: "pulseAnimation")
-    }
+
     
     func updateStatusBarIcon() {
         guard let button = statusBarItem.button else { return }
@@ -115,8 +115,8 @@ class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject {
         let symbolPointSize = menuBarThickness * 0.5 * screenBackingScaleFactor
         
         let symbolConfiguration = NSImage.SymbolConfiguration(pointSize: symbolPointSize, weight: .regular)
-        symbolConfiguration.applying(.preferringMulticolor())
-        symbolConfiguration.applying(.init(hierarchicalColor: .red))
+//        symbolConfiguration.applying(.preferringMulticolor())
+//        symbolConfiguration.applying(.init(hierarchicalColor: .red))
         // Check if the next event is within 10 minutes
         let isNextEventWithin10Minutes = calendar.MyEvents.first?.Event.startDate?.timeIntervalSinceNow ?? Double.infinity <= 600
         
@@ -124,14 +124,15 @@ class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject {
             .withSymbolConfiguration(symbolConfiguration)
         
         
-        if isNextEventWithin10Minutes {
-            
+        if calendar.active {
             button.image = iconImage?.tint(color: .red)
-            
+            statusBarItem.button?.contentTintColor = .red
         }
         else
         {
+            button.image = iconImage?.tint(color: .clear)
             button.image = iconImage
+            
         }
         
         if showDate {
@@ -140,12 +141,14 @@ class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject {
             let dateString = dateFormatter.string(from: Date())
             button.title = calendar.NextEvent
             button.imagePosition = .imageLeft
+            button.contentTintColor = .red
         } else {
             button.title = calendar.NextEvent
             button.imagePosition = .noImage
         }
         
     }
+    
     @objc func togglePopover(_ sender: AnyObject?) {
         if let button = statusBarItem.button {
             if popover.isShown {
@@ -159,16 +162,15 @@ class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject {
                 )
                 popover.contentViewController = NSHostingController(rootView: contentView)
                 popover.show(relativeTo: button.bounds, of: button, preferredEdge: .minY)
-                pulseStatusBarIcon() // Call the pulse animation function
             }
         }
     }
 }
-class CustomStatusBarButton: NSStatusBarButton {
-    override func highlight(_ flag: Bool) {
-        // Do nothing to prevent highlighting
-    }
-}
+//class CustomStatusBarButton: NSStatusBarButton {
+//    override func highlight(_ flag: Bool) {
+//        // Do nothing to prevent highlighting
+//    }
+//}
 extension NSImage {
     func tint(color: NSColor) -> NSImage {
         NSImage(size: size, flipped: false) { rect in
