@@ -47,6 +47,13 @@ class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject {
                         self.updateStatusBarIcon()
                     }
                     .store(in: &cancellables)
+        // Observe changes in showDate and update the status bar icon immediately
+        $showDate
+            .receive(on: RunLoop.main)
+            .sink { _ in
+                self.updateStatusBarIcon()
+            }
+            .store(in: &cancellables)
             
     }
     
