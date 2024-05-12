@@ -16,7 +16,7 @@ import LaunchAtLogin
 @main
 struct OBTPApp: App {
     @NSApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
-    
+
     var body: some Scene {
         Settings {
             SettingsView(calendar: appDelegate.calendar, joinButtonColor: .constant(appDelegate.joinButtonColor), showDate: .constant(appDelegate.showDate))
@@ -40,6 +40,7 @@ struct EventListView: View {
             self._showDate = showDate
             self.appDelegate = appDelegate
         }
+    
     var body: some View {
         VStack(spacing: 5) {
             // Display current date

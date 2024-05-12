@@ -10,6 +10,7 @@ class ObtpCalendar : ObservableObject {
             self.getEvents()
         }
         loadCalendarSelections()
+         
     }
     
     var timer = Timer()

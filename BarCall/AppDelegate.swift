@@ -8,11 +8,14 @@
 import SwiftUI
 import ServiceManagement
 import LaunchAtLogin
+import Combine
 
 class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject {
     var popover: NSPopover!
     var statusBarItem: NSStatusItem!
     var calendar = ObtpCalendar()
+    private var cancellables = Set<AnyCancellable>()
+
     @Published var joinButtonColor: Color = .yellow
     @Published var showDate: Bool = UserDefaults.standard.bool(forKey: "ShowDate")
    
@@ -37,6 +40,14 @@ class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject {
         showDate = UserDefaults.standard.bool(forKey: "ShowDate")
         
         setupMenuBarItem()
+        
+        calendar.objectWillChange
+                    .receive(on: RunLoop.main)
+                    .sink { _ in
+                        self.updateStatusBarIcon()
+                    }
+                    .store(in: &cancellables)
+            
     }
     
     func setupMenuBarItem() {
@@ -46,10 +57,11 @@ class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject {
         
         let contentView = EventListView(
             calendar: calendar,
-            joinButtonColor: joinButtonColorBinding, // Pass the joinButtonColor binding
-            showDate: showDateBinding, // Pass the showDate binding
+            joinButtonColor: joinButtonColorBinding,
+            showDate: showDateBinding,
             appDelegate: self
         )
+        
         popover.contentViewController = NSHostingController(rootView: contentView)
         
         statusBarItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.variableLength)
@@ -93,11 +105,11 @@ class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject {
             let dateFormatter = DateFormatter()
             dateFormatter.dateFormat = "E, MMM d"
             let dateString = dateFormatter.string(from: Date())
-            button.title = "Next Event"
-            button.imagePosition = .imageLeft // Change this to .imageLeft
+            button.title = calendar.NextEvent
+            button.imagePosition = .imageLeft
         } else {
-            button.title = ""
-            button.imagePosition = .imageOnly
+            button.title = calendar.NextEvent
+            button.imagePosition = .noImage
         }
     }
     
