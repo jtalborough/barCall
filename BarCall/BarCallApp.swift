@@ -25,58 +25,6 @@ struct OBTPApp: App {
 }
 
 
-
-//struct EventListView: View {
-//    @Environment(\.openURL) var openURL
-//    @ObservedObject var calendar: ObtpCalendar
-//    @Binding var joinButtonColor: Color
-//    @Binding var showDate: Bool
-//    @ObservedObject var appDelegate: AppDelegate
-//    @State private var isPopoverVisible = false // Add this line
-//
-//    @State private var showingSettings = false
-//    @State private var dismissSettings = false
-//    
-//    init(calendar: ObtpCalendar, joinButtonColor: Binding<Color>, showDate: Binding<Bool>, appDelegate: AppDelegate) {
-//        self.calendar = calendar
-//        self._joinButtonColor = joinButtonColor
-//        self._showDate = showDate
-//        self.appDelegate = appDelegate
-//    }
-//    var formattedDate: String {
-//        let dateFormatter = DateFormatter()
-//        dateFormatter.dateFormat = "MM/dd/yyyy"
-//        return dateFormatter.string(from: Date())
-//    }
-//    
-//    var body: some View {
-//        HStack {
-//            Image("11.test")
-//                .foregroundColor(.blue)
-//                .font(.largeTitle)
-//            
-//            if showDate {
-//                Text("(\(formattedDate))")
-//            } else {
-//                Text(calendar.NextEvent)
-//            }
-//        }
-//        .padding(4)
-//        .onTapGesture {
-//             isPopoverVisible.toggle()
-//        }
-//        .popover(isPresented: $isPopoverVisible) {
-//            EventListView(
-//                calendar: ObtpCalendar(),
-//                joinButtonColor: $appDelegate.joinButtonColor,
-//                showDate: $appDelegate.showDate,
-//                appDelegate: appDelegate
-//            )
-//        }
-//    }
-//}
-
-
 struct EventListView: View {
     @Environment(\.openURL) var openURL
     @ObservedObject var calendar: ObtpCalendar
@@ -205,10 +153,7 @@ struct EventRowView: View {
                         .preferredColorScheme(.dark)
                 }
             }
-            
-            // ...
         }
-        // ...
     }
 }
 

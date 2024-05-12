@@ -53,14 +53,51 @@ class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject {
         popover.contentViewController = NSHostingController(rootView: contentView)
         
         statusBarItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.variableLength)
-        
+
         if let button = statusBarItem.button {
-            let symbolConfiguration = NSImage.SymbolConfiguration(pointSize: 32, weight: .regular)
-            let iconImage = NSImage(systemSymbolName: "11.square", accessibilityDescription: "Calendar")?.withSymbolConfiguration(symbolConfiguration)
-            button.image = iconImage
-            
-            button.action = #selector(togglePopover(_:))
             button.target = self
+            button.action = #selector(togglePopover(_:))
+            
+            // Customize the button appearance
+            button.image = nil
+            button.title = ""
+            button.imagePosition = .imageLeft
+            
+            // Disable button highlighting
+            button.highlight(false)
+            
+            updateStatusBarIcon()
+        }
+    }
+    
+    func pulseStatusBarIcon() {
+        guard let button = statusBarItem.button else { return }
+        
+        let animation = CAKeyframeAnimation(keyPath: "opacity")
+        animation.values = [1.0, 0.5, 1.0]
+        animation.keyTimes = [0.0, 0.5, 1.0]
+        animation.duration = 0.7
+        button.layer?.add(animation, forKey: "pulseAnimation")
+    }
+    
+    func updateStatusBarIcon() {
+        guard let button = statusBarItem.button else { return }
+        
+        let dayNumber = Calendar.current.component(.day, from: Date())
+        let symbolName = "\(dayNumber).square"
+        let symbolConfiguration = NSImage.SymbolConfiguration(pointSize: 32, weight: .regular)
+        let iconImage = NSImage(systemSymbolName: symbolName, accessibilityDescription: "Calendar")?.withSymbolConfiguration(symbolConfiguration)
+        button.image = iconImage
+        
+        if showDate {
+            let dateFormatter = DateFormatter()
+            dateFormatter.dateFormat = "E, MMM d"
+            let dateString = dateFormatter.string(from: Date())
+            button.title = "Next Event"
+            button.imagePosition = .imageLeft // Change this to .imageLeft
+        } else {
+            button.title = ""
+            button.imagePosition = .imageOnly
         }
     }
     
@@ -77,7 +114,13 @@ class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject {
                 )
                 popover.contentViewController = NSHostingController(rootView: contentView)
                 popover.show(relativeTo: button.bounds, of: button, preferredEdge: .minY)
+                pulseStatusBarIcon() // Call the pulse animation function
             }
         }
+    }
+}
+class CustomStatusBarButton: NSStatusBarButton {
+    override func highlight(_ flag: Bool) {
+        // Do nothing to prevent highlighting
     }
 }
