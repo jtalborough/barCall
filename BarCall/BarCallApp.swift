@@ -34,6 +34,7 @@ struct EventListView: View {
     @State private var dismissSettings = false
     @Binding var showDate: Bool
 
+    
     init(calendar: ObtpCalendar, joinButtonColor: Binding<Color>, showDate: Binding<Bool>, appDelegate: AppDelegate) {
             self.calendar = calendar
             self._joinButtonColor = joinButtonColor
@@ -151,7 +152,7 @@ struct EventRowView: View {
                     Button("Join") { openURL(url) }
                         .buttonStyle(.borderedProminent)
                         .tint(joinButtonColor)
-                        .preferredColorScheme(.dark)
+                    //.preferredColorScheme(.dark)
                 }
             }
         }
