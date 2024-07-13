@@ -23,7 +23,6 @@ class ObtpCalendar : ObservableObject {
             saveCalendarSelections()
         }
     }
-    
     private func loadCalendarSelections() {
         // Fetch available calendars from UserDefaults and update availableCalendars
         var savedCalendars = [String: Bool]()
@@ -44,7 +43,6 @@ class ObtpCalendar : ObservableObject {
         availableCalendars = savedCalendars
     }
 
-    
     func getNextEventTitle() -> String {
         var title: String
         let now = Date()
@@ -81,10 +79,6 @@ class ObtpCalendar : ObservableObject {
 
         return title
     }
-
-
-
-
     func getEvents() {
         // Create a predicate
         guard let interval = Calendar.current.dateInterval(of: .day, for: Date()) else { return }
@@ -138,7 +132,6 @@ class ObtpCalendar : ObservableObject {
         }
         NextEvent = getNextEventTitle()
     }
-
     enum TimeFormat {
         case exact
         case fuzzy
@@ -180,7 +173,6 @@ class ObtpCalendar : ObservableObject {
         }
         return ""
     }
-    
     func extractMeetingURL(from text: String) -> String? {
         let pattern = "(https://(?:teams\\.microsoft\\.com|zoom\\.us|meet\\.google\\.com|goto\\.webex\\.com)/[^\\s>]+)"
         let regex = try? NSRegularExpression(pattern: pattern, options: .caseInsensitive)
@@ -192,8 +184,6 @@ class ObtpCalendar : ObservableObject {
         }
         return nil
     }
-
-    
     func checkCalendarAuthorizationStatus() {
         if #available(macOS 14, *)
         {
@@ -230,10 +220,13 @@ class ObtpCalendar : ObservableObject {
     private func saveCalendarSelections() {
         UserDefaults.standard.set(availableCalendars, forKey: "calendarSelections")
     }
+    
+    // Availability
     enum AvailabilityOption {
         case today
         case nextThreeDays
         case nextFiveDays
+        case nextTenDays
     }
 
     func getAvailability(for option: AvailabilityOption) -> String {
@@ -256,6 +249,10 @@ class ObtpCalendar : ObservableObject {
         case .nextFiveDays:
             availability = "# Availability for the Next 5 Days\n\n"
             let events = getEventsForAvailability(for: 5)
+            availability += generateAvailabilityMarkdown(from: events)
+        case .nextTenDays:
+            availability = "# Availability for the Next 10 Days\n\n"
+            let events = getEventsForAvailability(for: 10)
             availability += generateAvailabilityMarkdown(from: events)
         }
 
