@@ -1,41 +1,34 @@
-//
-//  OBTPApp.swift
-//  OBTP
-//
-//  Created by Jason T Alborough on 6/25/23.
-//
-
 import SwiftUI
 import ServiceManagement
-//import EventKit
 import LaunchAtLogin
 
 @main
-
-
 struct OBTPApp: App {
     @StateObject var calendar = ObtpCalendar()
-    
-    let timeFormat = DateFormatter()
 
+    let timeFormat = DateFormatter()
 
     var body: some Scene {
         MenuBarExtra(calendar.NextEvent, content: {
             EventListView(calendar: calendar)
         })
         .menuBarExtraStyle(.window)
-
-
     }
 }
-
-
 
 struct EventListView: View {
     @Environment(\.openURL) var openURL
     @ObservedObject var calendar: ObtpCalendar
     @State private var showingSettings = false
-    
+    @State private var startBusinessHour: Date
+    @State private var endBusinessHour: Date
+
+    init(calendar: ObtpCalendar) {
+        _startBusinessHour = State(initialValue: UserDefaults.standard.object(forKey: "startBusinessHour") as? Date ?? Date())
+        _endBusinessHour = State(initialValue: UserDefaults.standard.object(forKey: "endBusinessHour") as? Date ?? Date())
+        self.calendar = calendar
+    }
+
     var body: some View {
         VStack(spacing: 5) {
             // Display current date
@@ -46,7 +39,7 @@ struct EventListView: View {
                 .font(.headline)
                 .multilineTextAlignment(.center)
                 .padding(.bottom, 5)
-            
+
             ForEach(calendar.MyEvents, id: \.Uuid) { event in
                 EventRowView(event: event)
             }
@@ -75,13 +68,17 @@ struct EventListView: View {
                 NSPasteboard.general.clearContents()
                 NSPasteboard.general.setString(availability, forType: .string)
             }
-        }.menuStyle(BorderlessButtonMenuStyle())
-            .padding(10)
+        }
+        .menuStyle(BorderlessButtonMenuStyle())
+        .padding(10)
         Divider()
         Menu("Settings") {
-            Form {
-                LaunchAtLogin.Toggle()
+            LaunchAtLogin.Toggle()
+            Divider()
+            Button("Business Hours") {
+                showingSettings = true
             }
+            Divider()
             Button(action: {
                 NSApplication.shared.terminate(self)
             }) {
@@ -90,70 +87,58 @@ struct EventListView: View {
             }
             Divider()
             if !calendar.availableCalendars.isEmpty {
-                            Text("Calendars")
-                                .font(.headline)
-                            ForEach(calendar.availableCalendars.keys.sorted(), id: \.self) { calendarName in
-                                Toggle(isOn: Binding(
-                                    get: { self.calendar.availableCalendars[calendarName, default: false] },
-                                    set: { self.calendar.availableCalendars[calendarName] = $0 }
-                                )) {
-                                    Text(calendarName)
-                                }
-                            }
-                        }
- 
+                Text("Calendars")
+                    .font(.headline)
+                ForEach(calendar.availableCalendars.keys.sorted(), id: \.self) { calendarName in
+                    Toggle(isOn: Binding(
+                        get: { self.calendar.availableCalendars[calendarName, default: false] },
+                        set: { self.calendar.availableCalendars[calendarName] = $0 }
+                    )) {
+                        Text(calendarName)
+                    }
+                }
+            }
         }
-            .menuStyle(BorderlessButtonMenuStyle())
-            .padding(10)
+        .menuStyle(BorderlessButtonMenuStyle())
+        .padding(10)
+        .sheet(isPresented: $showingSettings) {
+            SettingsView(startBusinessHour: $startBusinessHour, endBusinessHour: $endBusinessHour)
+        }
     }
-        
 
-
-    
     func currentDate() -> String {
         let date = Date()
         let formatter = DateFormatter()
         formatter.dateFormat = "EEEE, MMMM d, yyyy"
         return "\(formatter.string(from: date))"
     }
-    
+
     func currentWeek() -> String {
         let date = Date()
-        
+
         let calendar = Calendar.current
         let weekOfYear = calendar.component(.weekOfYear, from: date)
-        
+
         return "Week \(weekOfYear)"
     }
 }
 
-
-
 struct EventRowView: View {
     let event: Events
     @Environment(\.openURL) var openURL
+
     var body: some View {
         VStack(alignment: .leading, spacing: 5) {
-           /*
-            Button(action: {
-                // Open the Calendar app at today's date
-                let url = URL(string: "calshow:")!
-                openURL(url)
-            }) {
-            */
-                HStack {
-                    Text(event.Title)
-                    Spacer()
-                    if let url = event.Url {
-                        Button("Join") { openURL(url) }
-                            .buttonStyle(.borderedProminent)
-                            .tint(Color.yellow).colorMultiply(.yellow)
-                            .preferredColorScheme(.dark)
-                    }
-
+            HStack {
+                Text(event.Title)
+                Spacer()
+                if let url = event.Url {
+                    Button("Join") { openURL(url) }
+                        .buttonStyle(.borderedProminent)
+                        .tint(Color.yellow).colorMultiply(.yellow)
+                        .preferredColorScheme(.dark)
                 }
-            //}
-            .buttonStyle(PlainButtonStyle()) // This makes the button look like regular text
+            }
             Text("\(event.StartTime) - \(event.EndTime)")
                 .font(.caption)
         }
@@ -165,4 +150,60 @@ struct EventRowView: View {
 }
 
 
+import SwiftUI
 
+struct SettingsView: View {
+    @Binding var startBusinessHour: Date
+    @Binding var endBusinessHour: Date
+    @Environment(\.presentationMode) var presentationMode
+
+    var body: some View {
+        VStack {
+            Text("Business Hours")
+                .font(.headline)
+                .padding()
+
+            Divider()
+
+            HStack {
+                Text("Start Time")
+                Spacer()
+                DatePicker("", selection: $startBusinessHour, displayedComponents: .hourAndMinute)
+                    .labelsHidden()
+                    .onChange(of: startBusinessHour) { newValue in
+                        UserDefaults.standard.set(newValue, forKey: "startBusinessHour")
+                    }
+            }
+            .padding()
+
+            HStack {
+                Text("End Time")
+                Spacer()
+                DatePicker("", selection: $endBusinessHour, displayedComponents: .hourAndMinute)
+                    .labelsHidden()
+                    .onChange(of: endBusinessHour) { newValue in
+                        UserDefaults.standard.set(newValue, forKey: "endBusinessHour")
+                    }
+            }
+            .padding()
+
+            Spacer()
+
+            Button("Close") {
+                presentationMode.wrappedValue.dismiss()
+            }
+            .padding()
+        }
+        .frame(width: 300, height: 200)
+        .padding()
+    }
+}
+
+struct SettingsView_Previews: PreviewProvider {
+    @State static var startBusinessHour = Date()
+    @State static var endBusinessHour = Date()
+
+    static var previews: some View {
+        SettingsView(startBusinessHour: $startBusinessHour, endBusinessHour: $endBusinessHour)
+    }
+}
