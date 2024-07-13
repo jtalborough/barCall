@@ -346,7 +346,7 @@ class ObtpCalendar : ObservableObject {
         let calendar = Calendar.current
         let startOfDay = calendar.startOfDay(for: date)
         
-        let businessHoursStart = calendar.date(bySettingHour: 8, minute: 0, second: 0, of: startOfDay)!
+        let businessHoursStart = calendar.date(bySettingHour: 9, minute: 0, second: 0, of: startOfDay)!
         let businessHoursEnd = calendar.date(bySettingHour: 18, minute: 0, second: 0, of: startOfDay)!
         
         let sortedEvents = events.sorted { $0.Event.startDate < $1.Event.startDate }
