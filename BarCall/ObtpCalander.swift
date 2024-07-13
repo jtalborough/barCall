@@ -241,48 +241,98 @@ class ObtpCalendar : ObservableObject {
             availability = "# Availability for Today\n\n"
             availability += "## \(formatter.string(from: currentDate))\n\n"
             let events = getEventsForAvailability(for: 1)
-            availability += generateAvailabilityMarkdown(from: events)
+            availability += generateAvailabilityMarkdown(from: events, days: 1)
         case .nextThreeDays:
             availability = "# Availability for the Next 3 Days\n\n"
             let events = getEventsForAvailability(for: 3)
-            availability += generateAvailabilityMarkdown(from: events)
+            availability += generateAvailabilityMarkdown(from: events, days: 3)
         case .nextFiveDays:
             availability = "# Availability for the Next 5 Days\n\n"
             let events = getEventsForAvailability(for: 5)
-            availability += generateAvailabilityMarkdown(from: events)
+            availability += generateAvailabilityMarkdown(from: events, days: 5)
         case .nextTenDays:
             availability = "# Availability for the Next 10 Days\n\n"
             let events = getEventsForAvailability(for: 10)
-            availability += generateAvailabilityMarkdown(from: events)
+            availability += generateAvailabilityMarkdown(from: events, days: 10)
         }
 
         return availability
     }
 
-    private func generateAvailabilityMarkdown(from events: [Events]) -> String {
+    func getEventsForAvailability(for days: Int) -> [Events] {
+        let currentDate = Date()
+        let calendar = Calendar.current
+        
+        var events = [Events]()
+        
+        for i in 0..<days {
+            guard let interval = calendar.dateInterval(of: .day, for: calendar.date(byAdding: .day, value: i, to: currentDate)!) else { continue }
+            
+            let allCalendars = eventCalendar.calendars(for: .event)
+            let enabledCalendars = allCalendars.filter { calendar in
+                self.availableCalendars[calendar.title] ?? false
+            }
+            
+            let predicate = eventCalendar.predicateForEvents(withStart: interval.start, end: interval.end, calendars: enabledCalendars)
+            let eventsForDay = eventCalendar.events(matching: predicate)
+            let sortedEvents = eventsForDay.sorted { $0.startDate < $1.startDate }
+            
+            for tempEvent in sortedEvents {
+                if tempEvent.endDate.timeIntervalSinceNow > 0 && !tempEvent.isAllDay {
+                    let newEvent = Events(title: tempEvent.title, startTime: formatRelativeTime(to: tempEvent.startDate), event: tempEvent)
+                    
+                    if let location = tempEvent.location, location.contains("http"),
+                       let httpIndex = location.range(of: "http")?.lowerBound {
+                        let substringFromHttp = String(location[httpIndex...])
+                        if let endIndex = substringFromHttp.rangeOfCharacter(from: CharacterSet(charactersIn: " ;\n"))?.lowerBound {
+                            let firstUrl = String(substringFromHttp[..<endIndex])
+                            newEvent.Url = URL(string: firstUrl)
+                        } else {
+                            newEvent.Url = URL(string: substringFromHttp)
+                        }
+                    } else if let extractedURL = extractMeetingURL(from: tempEvent.notes ?? "") {
+                        newEvent.Url = URL(string: extractedURL)
+                    }
+                    
+                    events.append(newEvent)
+                }
+            }
+        }
+        
+        return events
+    }
+
+    private func generateAvailabilityMarkdown(from events: [Events], days: Int) -> String {
         var markdown = ""
         
         if events.isEmpty {
             markdown += "- No events scheduled\n"
         } else {
-            let groupedEvents = Dictionary(grouping: events, by: { Calendar.current.startOfDay(for: $0.Event.startDate) })
-            let sortedDates = groupedEvents.keys.sorted()
+            let currentDate = Date()
+            let calendar = Calendar.current
             
+            let groupedEvents = Dictionary(grouping: events, by: { Calendar.current.startOfDay(for: $0.Event.startDate) })
             let timeZone = TimeZone.current
             let timeZoneName = timeZone.localizedName(for: .generic, locale: .current) ?? ""
             
-            for date in sortedDates {
+            for i in 0..<days {
+                guard let date = calendar.date(byAdding: .day, value: i, to: currentDate) else { continue }
+                
                 let formatter = DateFormatter()
                 formatter.dateFormat = "EEEE, MMMM d, yyyy"
                 markdown += "## \(formatter.string(from: date)) (\(timeZoneName))\n\n"
                 
-                let availableSlots = getAvailableTimeSlots(for: date, events: groupedEvents[date]!)
-                if availableSlots.isEmpty {
-                    markdown += "- No available time slots\n"
-                } else {
-                    for slot in availableSlots {
-                        markdown += "- \(slot.startTime) - \(slot.endTime)\n"
+                if let eventsForDay = groupedEvents[calendar.startOfDay(for: date)] {
+                    let availableSlots = getAvailableTimeSlots(for: date, events: eventsForDay)
+                    if availableSlots.isEmpty {
+                        markdown += "- No available time slots\n"
+                    } else {
+                        for slot in availableSlots {
+                            markdown += "- \(slot.startTime) - \(slot.endTime)\n"
+                        }
                     }
+                } else {
+                    markdown += "- No events scheduled\n"
                 }
                 
                 markdown += "\n"
@@ -333,49 +383,6 @@ class ObtpCalendar : ObservableObject {
         }
         
         return availableSlots
-    }
-    
-    func getEventsForAvailability(for days: Int) -> [Events] {
-        let currentDate = Date()
-        let calendar = Calendar.current
-        
-        var events = [Events]()
-        
-        for i in 0..<days {
-            guard let interval = calendar.dateInterval(of: .day, for: calendar.date(byAdding: .day, value: i, to: currentDate)!) else { continue }
-            
-            let allCalendars = eventCalendar.calendars(for: .event)
-            let enabledCalendars = allCalendars.filter { calendar in
-                self.availableCalendars[calendar.title] ?? false
-            }
-            
-            let predicate = eventCalendar.predicateForEvents(withStart: interval.start, end: interval.end, calendars: enabledCalendars)
-            let eventsForDay = eventCalendar.events(matching: predicate)
-            let sortedEvents = eventsForDay.sorted { $0.startDate < $1.startDate }
-            
-            for tempEvent in sortedEvents {
-                if tempEvent.endDate.timeIntervalSinceNow > 0 && !tempEvent.isAllDay {
-                    let newEvent = Events(title: tempEvent.title, startTime: formatRelativeTime(to: tempEvent.startDate), event: tempEvent)
-                    
-                    if let location = tempEvent.location, location.contains("http"),
-                       let httpIndex = location.range(of: "http")?.lowerBound {
-                        let substringFromHttp = String(location[httpIndex...])
-                        if let endIndex = substringFromHttp.rangeOfCharacter(from: CharacterSet(charactersIn: " ;\n"))?.lowerBound {
-                            let firstUrl = String(substringFromHttp[..<endIndex])
-                            newEvent.Url = URL(string: firstUrl)
-                        } else {
-                            newEvent.Url = URL(string: substringFromHttp)
-                        }
-                    } else if let extractedURL = extractMeetingURL(from: tempEvent.notes ?? "") {
-                        newEvent.Url = URL(string: extractedURL)
-                    }
-                    
-                    events.append(newEvent)
-                }
-            }
-        }
-        
-        return events
     }
     private func eventsForDate(_ date: Date) -> [Events] {
         let calendar = Calendar.current

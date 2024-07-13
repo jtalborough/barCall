@@ -70,6 +70,11 @@ struct EventListView: View {
                 NSPasteboard.general.clearContents()
                 NSPasteboard.general.setString(availability, forType: .string)
             }
+            Button("Next 10 Days") {
+                let availability = calendar.getAvailability(for: .nextTenDays)
+                NSPasteboard.general.clearContents()
+                NSPasteboard.general.setString(availability, forType: .string)
+            }
         }.menuStyle(BorderlessButtonMenuStyle())
             .padding(10)
         Divider()
