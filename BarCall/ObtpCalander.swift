@@ -306,7 +306,7 @@ class ObtpCalendar : ObservableObject {
         var markdown = ""
         
         if events.isEmpty {
-            markdown += "- No events scheduled\n"
+            markdown += "- Available all day\n"
         } else {
             let currentDate = Date()
             let calendar = Calendar.current
