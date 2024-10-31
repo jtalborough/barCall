@@ -32,3 +32,4 @@ BarCall - Redefining your virtual meeting experience.
 [Calendar Icon by flaticon](https://www.flaticon.com/free-icons/calendar)
 
 [BarCall Privacy Policy ](https://github.com/jtalborough/barCall/blob/main/PrivacyPolicy.md)
+
