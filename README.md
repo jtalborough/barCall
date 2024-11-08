@@ -1,5 +1,7 @@
 # BarCall
 
+[Available on the Mac App Store](https://apps.apple.com/us/app/barcall/id6456889305?mt=12)
+
 ### **BarCall: Your Meeting Command Center**
 
 **Elevate Your Meetings to the Mac Menu Bar** 
