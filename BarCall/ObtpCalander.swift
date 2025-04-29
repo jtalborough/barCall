@@ -79,6 +79,64 @@ class ObtpCalendar : ObservableObject {
 
         return title
     }
+    func extractMeetingURL(from text: String) -> String? {
+        // Check if text is empty
+        guard !text.isEmpty else { return nil }
+        
+        // First, look for Microsoft Teams meeting URL
+        if text.contains("teams.microsoft.com") {
+            // Look for the "Join the meeting now" link which typically contains the meeting URL
+            if let joinRange = text.range(of: "Join the meeting now<") {
+                let afterJoinText = String(text[joinRange.upperBound...])
+                if let urlStartRange = afterJoinText.range(of: "https://"),
+                   let urlEndRange = afterJoinText.range(of: ">", range: urlStartRange.upperBound..<afterJoinText.endIndex) {
+                    let extractedURL = String(afterJoinText[urlStartRange.lowerBound..<urlEndRange.lowerBound])
+                    
+                    // Clean up the URL by removing any safelinks wrapper
+                    if extractedURL.contains("safelinks.protection.outlook.com") {
+                        if let urlParam = extractedURL.range(of: "url="),
+                           let dataParam = extractedURL.range(of: "&data=", range: urlParam.upperBound..<extractedURL.endIndex) {
+                            let encodedURL = String(extractedURL[urlParam.upperBound..<dataParam.lowerBound])
+                            return encodedURL.removingPercentEncoding
+                        }
+                    }
+                    return extractedURL
+                }
+            }
+            
+            // Alternative approach: directly search for teams.microsoft.com link
+            let teamsURLPattern = "https://teams.microsoft.com/l/meetup-join/[^\\s<>\"']+"
+            if let regex = try? NSRegularExpression(pattern: teamsURLPattern),
+               let match = regex.firstMatch(in: text, range: NSRange(text.startIndex..., in: text)) {
+                if let range = Range(match.range, in: text) {
+                    return String(text[range])
+                }
+            }
+            
+            // Another fallback: look for any URL with teams.microsoft.com
+            if let httpRange = text.range(of: "https://"),
+               text[httpRange.lowerBound...].contains("teams.microsoft.com") {
+                let afterHttpText = String(text[httpRange.lowerBound...])
+                if let endIndex = afterHttpText.rangeOfCharacter(from: CharacterSet(charactersIn: " ;<>\n\"'"))?.lowerBound {
+                    return String(afterHttpText[..<endIndex])
+                } else {
+                    return String(afterHttpText)
+                }
+            }
+        }
+        
+        // Fallback to look for any URL in the text (Zoom, Google Meet, etc.)
+        let urlPattern = "https?://[^\\s<>\"']+"
+        if let regex = try? NSRegularExpression(pattern: urlPattern),
+           let match = regex.firstMatch(in: text, range: NSRange(text.startIndex..., in: text)) {
+            if let range = Range(match.range, in: text) {
+                return String(text[range])
+            }
+        }
+        
+        return nil
+    }
+
     func getEvents() {
         // Create a predicate
         guard let interval = Calendar.current.dateInterval(of: .day, for: Date()) else { return }
@@ -105,8 +163,10 @@ class ObtpCalendar : ObservableObject {
                 let newEvent = Events(title: tempevent.title, startTime: formatRelativeTime(to: tempevent.startDate), event: tempevent)
                 
                 let location = tempevent.location
-                print("Debug: location = \(String(describing: tempevent.location))") //
+                print("Debug: location = \(String(describing: tempevent.location))")
+                print("Debug: body = \(String(describing: tempevent.notes))")
 
+                // First try to find a URL in the location
                 if let location = location, location.contains("http") {
                     if let httpIndex = location.range(of: "http")?.lowerBound {
                         let substringFromHttp = String(location[httpIndex...])
@@ -117,17 +177,25 @@ class ObtpCalendar : ObservableObject {
                             newEvent.Url = URL(string: substringFromHttp)
                         }
                     }
-                }  else {
-                    // print("Debug: tempEvent.notes = \(String(describing: tempevent.notes))") // Debugging line
-                    let extractedURL = extractMeetingURL(from: tempevent.notes ?? "") ?? ""
-                    print("Debug: extractedURL = \(extractedURL)") // Debugging line
-                    newEvent.Url = URL(string: extractedURL)
+                }
+                // If location doesn't have a URL or if it's a Teams meeting
+                else if location?.contains("Teams Meeting") == true || location?.contains("Microsoft Teams") == true || newEvent.Url == nil {
+                    if let urlString = extractMeetingURL(from: tempevent.notes ?? "") {
+                        print("Debug: Teams URL extracted = \(urlString)")
+                        newEvent.Url = URL(string: urlString)
+                    }
+                }
+                // Fallback to checking notes for any meeting URL
+                else if newEvent.Url == nil {
+                    if let urlString = extractMeetingURL(from: tempevent.notes ?? "") {
+                        print("Debug: URL extracted from notes = \(urlString)")
+                        newEvent.Url = URL(string: urlString)
+                    }
                 }
 
-                print("Debug: extractedURL = \(String(describing: newEvent.Url))") //
+                print("Debug: extractedURL = \(String(describing: newEvent.Url))")
 
                 MyEvents.append(newEvent)
-
             }
         }
         NextEvent = getNextEventTitle()
@@ -173,17 +241,7 @@ class ObtpCalendar : ObservableObject {
         }
         return ""
     }
-    func extractMeetingURL(from text: String) -> String? {
-        let pattern = "(https://(?:teams\\.microsoft\\.com|zoom\\.us|meet\\.google\\.com|goto\\.webex\\.com)/[^\\s>]+)"
-        let regex = try? NSRegularExpression(pattern: pattern, options: .caseInsensitive)
-        let range = NSRange(location: 0, length: text.utf16.count)
-        if let match = regex?.firstMatch(in: text, options: [], range: range),
-           let urlRange = Range(match.range(at: 1), in: text) {
-            let url = String(text[urlRange])
-            return url
-        }
-        return nil
-    }
+
     func checkCalendarAuthorizationStatus() {
         if #available(macOS 14, *)
         {
